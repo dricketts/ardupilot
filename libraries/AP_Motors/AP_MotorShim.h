@@ -22,6 +22,10 @@ protected:
     // output - sends commands to the motors
     virtual void        output_armed();
 
+    bool is_safe(float accel);
+
+    float get_acceleration(int16_t motor_out[]);
+
 private:
     const AP_InertialNav& inertial_nav;
 
