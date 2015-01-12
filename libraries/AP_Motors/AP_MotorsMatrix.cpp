@@ -122,6 +122,13 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 // includes new scaling stability patch
 void AP_MotorsMatrix::output_armed()
 {
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
+    compute_outputs_armed(motor_out);
+    write_outputs(motor_out);
+}
+
+void AP_MotorsMatrix::compute_outputs_armed(int16_t motor_out[])
+{
     int8_t i;
     int16_t out_min_pwm = _rc_throttle.radio_min + _min_throttle;      // minimum pwm value we can send to the motors
     int16_t out_max_pwm = _rc_throttle.radio_max;                      // maximum pwm value we can send to the motors
@@ -130,7 +137,6 @@ void AP_MotorsMatrix::output_armed()
     float rpy_scale = 1.0; // this is used to scale the roll, pitch and yaw to fit within the motor limits
 
     int16_t rpy_out[AP_MOTORS_MAX_NUM_MOTORS]; // buffer so we don't have to multiply coefficients multiple times.
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
 
     int16_t rpy_low = 0;    // lowest motor value
     int16_t rpy_high = 0;   // highest motor value
@@ -325,9 +331,12 @@ void AP_MotorsMatrix::output_armed()
             }
         }
     }
+}
 
+void AP_MotorsMatrix::write_outputs(int16_t motor_out[])
+{
     // send output to each motor
-    for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
+    for(int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {
             hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), motor_out[i]);
         }

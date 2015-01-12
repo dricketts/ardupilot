@@ -72,6 +72,12 @@ protected:
     virtual void        output_armed();
     virtual void        output_disarmed();
 
+    // computes outputs to be sent to motors
+    void compute_outputs_armed(int16_t motor_out[]);
+
+    // actually sends outputs to motors
+    void write_outputs(int16_t motor_out[]);
+
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);
 
