@@ -14,19 +14,33 @@ public:
 
     /// Constructor
     AP_MotorShim( RC_Channel& rc_roll, RC_Channel& rc_pitch, RC_Channel& rc_throttle, RC_Channel& rc_yaw,
-                  const AP_InertialNav& nav, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
-        : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), inertial_nav(nav) {
+                  const AP_InertialNav_NavEKF& nav, AP_Baro& baro, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
+        : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), inertial_nav(nav), a(0) {
     };
 
 protected:
     // output - sends commands to the motors
     virtual void        output_armed();
 
-    bool is_safe(float accel);
+private:
+    // OneDimAccShim1.v
+    bool is_safe1(float A);
+    // OneDimAccShim2.v
+    bool is_safe2(float A);
 
+    // converts the motor signals to acceleration
     float get_acceleration(int16_t motor_out[]);
 
-private:
-    const AP_InertialNav& inertial_nav;
+    // returns the most recently read altitude
+    float get_altitude();
+
+    // returns the most recently read vertical velocity
+    float get_vertical_vel();
+
+    // the previous acceleration
+    float a;
+
+    // the object that gives sensor readings
+    const AP_InertialNav_NavEKF& inertial_nav;
 
 };
