@@ -8,14 +8,32 @@
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
 #include "AP_MotorsQuad.h"    // Parent Motors Quad library
 
+// Ratio between pwm of a single motor
+// (scaled to be between 0 and 1) and the thrust
+// it produces. Equal to (g/(4*hover_throttle)).
+// Taken from python simulation in
+// Tools/autotest/pysim/multicopter.py.
+#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+  static const float pwm_accel_scale = 5.448138888889;
+#endif
+// Maximum possible acceleration.
+static const float amax = 4 * pwm_accel_scale;
+// Acceleration due to gravity in cm/s/s.
+// Sensors seem to use cm as length unit.
+// This constant has same level of precision
+// as python simulation.
+static const float amin = -980.665;
+
 /// @class      AP_MotorShim
 class AP_MotorShim : public AP_MotorsQuad {
 public:
 
     /// Constructor
     AP_MotorShim( RC_Channel& rc_roll, RC_Channel& rc_pitch, RC_Channel& rc_throttle, RC_Channel& rc_yaw,
-                  const AP_InertialNav_NavEKF& nav, AP_Baro& baro, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
-        : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), inertial_nav(nav), a(0) {
+                  const AP_InertialNav_NavEKF& nav, const float ub, const float d,
+                  uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
+        : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
+          _ub(ub), _d(d), _a(0) {
     };
 
 protected:
@@ -28,6 +46,9 @@ private:
     // OneDimAccShim2.v
     bool is_safe2(float A);
 
+    bool bound_is_safe(float H, float V, float t1,
+                       float t2, float a1, float a2);
+
     // converts the motor signals to acceleration
     float get_acceleration(int16_t motor_out[]);
 
@@ -38,9 +59,20 @@ private:
     float get_vertical_vel();
 
     // the previous acceleration
-    float a;
+    float _a;
+
+    // The delay between the sensor readings and when
+    // the new motor accelerations will be set.
+    // The loop that reads sensors and writes motors
+    // is called fast_loop in ArduCopter.pde. It should
+    // run at 100hz for SITL simulation. The frequency is
+    // determined by the macro MAIN_LOOP_RATE in config.h
+    // in ArduCopter.
+    const float _d;
+
+    const float _ub;
 
     // the object that gives sensor readings
-    const AP_InertialNav_NavEKF& inertial_nav;
+    const AP_InertialNav_NavEKF& _inertial_nav;
 
 };
