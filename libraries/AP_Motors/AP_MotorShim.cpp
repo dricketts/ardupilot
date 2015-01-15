@@ -23,6 +23,8 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
         + sdist(V + (a1*_d) + (a2*t2)) <= _ub;
 }
 
+// safety check on the proposed acceleration
+// taken from OneDimAccShim1.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe1(float A) {
     float H = get_altitude();
@@ -31,6 +33,8 @@ bool AP_MotorShim::is_safe1(float A) {
         bound_is_safe(H, V, 0, _d, amax, amax);
 }
 
+// safety check on the proposed acceleration
+// taken from OneDimAccShim2.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe2(float A) {
     float H = get_altitude();
@@ -46,6 +50,10 @@ bool AP_MotorShim::is_safe2(float A) {
         (_a < 0 && tdist(V, 0, _d) < 0 && A < 0 && bound_is_safe(H, V, 0, _d, 0, 0));
 }
 
+// Gives an estimate of an upper bound on acceleration.
+// Gives a conservative upper bound by assuming the
+// quadcopter is perfectly level and thus all
+// motors are pointed upwards.
 float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
     float accel = 0;
     for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
@@ -54,20 +62,23 @@ float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
     return accel;
 }
 
+// gets the most recently estimated altitude
 float AP_MotorShim::get_altitude() {
     return _inertial_nav.get_altitude();
 }
 
+// gets the most recently estimated vertical velocity
 float AP_MotorShim::get_vertical_vel() {
     return _inertial_nav.get_velocity_z();
 }
 
-// output_armed - sends commands to the motors
-// includes new scaling stability patch
+// output_armed - sends control signals to the motors
 void AP_MotorShim::output_armed()
 {
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
     // compute the proposed motor signals
+    // these proposed motor signals come
+    // from the pilot/other controllers
     compute_outputs_armed(motor_out);
 
     // TODO - limit the motor voltages to something that

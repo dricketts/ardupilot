@@ -8,6 +8,17 @@
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
 #include "AP_MotorsQuad.h"    // Parent Motors Quad library
 
+// This is an upper bound height shim
+// This means that the shim takes a proposed
+// array of control signals to the motors and
+// decides whether they are safe. If they are
+// safe, the shim sends exactly those control
+// signals. Otherwise, it sends the minimum
+// control signal to the motors.
+// The safety check and the safe value are
+// such that the height of the system will
+// always stay below the upper bound.
+
 // Ratio between pwm of a single motor
 // (scaled to be between 0 and 1) and the thrust
 // it produces. Equal to (g/(4*hover_throttle)).
@@ -29,6 +40,10 @@ class AP_MotorShim : public AP_MotorsQuad {
 public:
 
     /// Constructor
+    // In addition to the arguments required by the parent class,
+    // this constructor takes an altitude upper bound and a delay d
+    // which gives the maximum time between updates of the shim
+    // using new altitude and vertical velocity estimates.
     AP_MotorShim( RC_Channel& rc_roll, RC_Channel& rc_pitch, RC_Channel& rc_throttle, RC_Channel& rc_yaw,
                   const AP_InertialNav_NavEKF& nav, const float ub, const float d,
                   uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
@@ -70,6 +85,7 @@ private:
     // in ArduCopter.
     const float _d;
 
+    // The altitude upper bound
     const float _ub;
 
     // the object that gives sensor readings
