@@ -57,9 +57,9 @@ protected:
 
 private:
     // OneDimAccShim1.v
-    bool is_safe1(float A);
+    bool is_safe1(float A, float H, float V);
     // OneDimAccShim2.v
-    bool is_safe2(float A);
+    bool is_safe2(float A, float H, float V);
 
     bool bound_is_safe(float H, float V, float t1,
                        float t2, float a1, float a2);

@@ -26,9 +26,7 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
 // safety check on the proposed acceleration
 // taken from OneDimAccShim1.v.
 // A - the proposed acceleration
-bool AP_MotorShim::is_safe1(float A) {
-    float H = get_altitude();
-    float V = get_vertical_vel();
+bool AP_MotorShim::is_safe1(float A, float H, float V) {
     return bound_is_safe(H, V, _d, _d, amax, amax) &&
         bound_is_safe(H, V, 0, _d, amax, amax);
 }
@@ -36,9 +34,7 @@ bool AP_MotorShim::is_safe1(float A) {
 // safety check on the proposed acceleration
 // taken from OneDimAccShim2.v.
 // A - the proposed acceleration
-bool AP_MotorShim::is_safe2(float A) {
-    float H = get_altitude();
-    float V = get_vertical_vel();
+bool AP_MotorShim::is_safe2(float A, float H, float V) {
     return
         (_a >= 0 && tdist(V, _a, _d) >= 0 && A >= 0 && bound_is_safe(H, V, _d, _d, _a, A)) ||
         (_a >= 0 && tdist(V, _a, _d) < 0 && A >= 0 && bound_is_safe(H, V, 0, _d, _a, A)) ||
@@ -72,6 +68,21 @@ float AP_MotorShim::get_vertical_vel() {
     return _inertial_nav.get_velocity_z();
 }
 
+// This function is, in a loose sense, an implementation
+// of Ctrl from OneDimAccShim1.v or OneDimAccShim2.v,
+// depending on which version of is_safe you use. Let's
+// consider OneDimAccShim2.v:
+//
+//   Ctrl ==
+//     \/ /\ SafeCtrl
+//        /\ a! = A
+//     \/ a! = amin
+//
+// I've put inline comments below to show where each
+// part of this spec is implemented. The comments
+// are between BEGIN SPEC IMPLEMENTATION and
+// END SPEC IMPLEMENTATION.
+//
 // output_armed - sends control signals to the motors
 void AP_MotorShim::output_armed()
 {
@@ -85,19 +96,53 @@ void AP_MotorShim::output_armed()
     // will pass the safety test. This might make flight
     // smoother than repeatedly turning on and off motors.
 
-    float A = get_acceleration(motor_out);
+    ///////////////////////////////////////////////////
+    // BEGIN SPEC IMPLEMENTATION
+    ///////////////////////////////////////////////////
 
-    // turn off the engines if safety condition is not met
-    if (!is_safe2(A)) {
+    // These are variable mappings. These would need
+    // to be specified by the user.
+    float A = get_acceleration(motor_out);
+    float H = get_altitude();
+    float V = get_vertical_vel();
+
+    // SafeCtrl is implemented as is_safe2.
+    // SafeCtrl takes no argument, but is_safe2
+    // must take arguments whose value is the expressions
+    // specified by the variable mappings. We could just
+    // put all of these expressions inline, but then
+    // get_acceleration would be recomputed many times.
+    // Performance is important here.
+    //
+    // \/ /\ SafeCtrl
+    //    /\ a! = A
+    if (is_safe2(A, H, V)) {
+        _a = A;
+    }
+    // \/ a! = amin
+    else {
+        // The implementation of a! = amin is a bit weird.
+        // It actually corresponds to two C++ statements:
+        //   1) A write to the motor control signal array
+        //      (motor_out).
+        //   2) A write to the variable storing the previous
+        //      acceleration.
+        // We didn't have to do part (1) in the if block
+        // because no changes need to be made to motor_out.
+        // I'm not sure how to handle these two cases in a
+        // uniform way.
         for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
                 motor_out[i] = 0;
             }
         }
+        _a = amin;
     }
 
-    // store the current acceleration for the next iteration
-    _a = A;
+
+    ///////////////////////////////////////////////////
+    // END SPEC IMPLEMENTATION
+    ///////////////////////////////////////////////////
 
     // write the control signals to the motors
     write_outputs(motor_out);
