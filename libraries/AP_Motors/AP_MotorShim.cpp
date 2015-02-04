@@ -12,19 +12,19 @@ static float tdist(float V, float a, float t) {
 
 // distance required to stop when traveling
 // at positive velocity V
-static float sdist(float V) {
+static float sdist(float V, float amin) {
     return -(V*V)/(2*amin);
 }
 
 // Gives the height of the vehicle if it starts at H with
 // initial velocity V, travels for t1 time at acceleration
 // a1, then travels for t2 time at acceleration a2, and
-// then comes to a stop with acceleration amin.
+// then comes to a stop with acceleration _amin.
 float AP_MotorShim::bound_expr(float H, float V, float t1,
                                float t2, float a1, float a2) {
     return H + tdist(V, a1, t1)
         + tdist(V + (a1*_d), a2, t2)
-        + sdist(V + (a1*_d) + (a2*t2));
+        + sdist(V + (a1*_d) + (a2*t2), _amin);
 }
 
 // Returns true iff bound_expr on the same arguments is at most
@@ -38,8 +38,8 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
 // taken from OneDimAccShim1.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe1(float A, float H, float V) {
-    return bound_is_safe(H, V, _d, _d, amax, amax) &&
-        bound_is_safe(H, V, 0, _d, amax, amax);
+    return bound_is_safe(H, V, _d, _d, _amax, _amax) &&
+        bound_is_safe(H, V, 0, _d, _amax, _amax);
 }
 
 // safety check on the proposed acceleration
@@ -62,8 +62,8 @@ bool AP_MotorShim::is_safe2(float A, float H, float V) {
 // non-negativity in the argument we pass.
 float AP_MotorShim::sqrt_expr(float H, float V, float t1,
                               float t2, float a1) {
-    return amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
-                 (amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
+    return _amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
+                 (_amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
 
 }
 
@@ -74,7 +74,7 @@ float AP_MotorShim::safe_accel2(float H, float V, float t1,
                                 float t2, float a1) {
     if (sqrt_expr(H, V, t1, t2, a1) >= 0) {
         return (sqrt(sqrt_expr(H, V, t1, t2, a1))
-                - (2*a1*_d) + (amin*t2) - (2*V))
+                - (2*a1*_d) + (_amin*t2) - (2*V))
             /(2*t2);
     } else {
         return 0;
@@ -105,12 +105,12 @@ float AP_MotorShim::compute_safe2(float H, float V) {
 // Gives a conservative upper bound by assuming the
 // quadcopter is perfectly level and thus all
 // motors are pointed upwards.
-float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
-    float accel = 0;
-    for (int8_t i=0; i<4; i++) {
-        accel += ((motor_out[i] - 1000)/1000.0)*pwm_accel_scale;
-    }
-    return accel + gravity;
+float AP_MotorShim::get_acceleration() {
+    return (get_throttle_out()*_throttle_to_accel) + gravity;
+}
+
+void AP_MotorShim::set_throttle_from_acc(float A) {
+    set_throttle((A-gravity)/_throttle_to_accel);
 }
 
 // gets the most recently estimated altitude
@@ -134,23 +134,14 @@ float AP_MotorShim::get_vertical_vel() {
 // acceleration. To keep things as close as possible to the original
 // proposed signals, we keep to ratio between different components
 // of motor_out the same.
-void AP_MotorShim::smoothing_shim(int16_t motor_out[]) {
+void AP_MotorShim::smoothing_shim() {
     float H = get_altitude();
     float V = get_vertical_vel();
-    float A_proposal = get_acceleration(motor_out);
+    float A_proposal = get_acceleration();
 
-    // The following check would never fail with real arithmetic
-    // but could fail with floating point arithmetic.
-    if (A_proposal-gravity > 0) {
-        float A_safe = compute_safe2(H, V);
-        if (A_safe < A_proposal) {
-            float ratio = (A_safe-gravity)/(A_proposal-gravity);
-            for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
-                }
-            }
-        }
+    float A_safe = compute_safe2(H, V);
+    if (A_safe < A_proposal) {
+        set_throttle_from_acc(A_safe);
     }
 }
 
@@ -172,14 +163,8 @@ void AP_MotorShim::smoothing_shim(int16_t motor_out[]) {
 // output_armed - sends control signals to the motors
 void AP_MotorShim::output_armed()
 {
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
-    // compute the proposed motor signals
-    // these proposed motor signals come
-    // from the pilot/other controllers
-    compute_outputs_armed(motor_out);
-
     // Run the unverified smoothing shim
-    smoothing_shim(motor_out);
+    //smoothing_shim();
 
     ///////////////////////////////////////////////////
     // BEGIN SPEC IMPLEMENTATION
@@ -190,7 +175,7 @@ void AP_MotorShim::output_armed()
 
     float H = get_altitude();
     float V = get_vertical_vel();
-    float A = get_acceleration(motor_out);
+    float A = get_acceleration();
 
     // SafeCtrl is implemented as is_safe2.
     // SafeCtrl takes no argument, but is_safe2
@@ -209,25 +194,26 @@ void AP_MotorShim::output_armed()
     else {
         // The implementation of a! = amin is a bit weird.
         // It actually corresponds to two C++ statements:
-        //   1) A write to the motor control signal array
-        //      (motor_out).
+        //   1) A write to the throttle
         //   2) A write to the variable storing the previous
         //      acceleration.
         // We didn't have to do part (1) in the if block
         // because no changes need to be made to motor_out.
         // I'm not sure how to handle these two cases in a
         // uniform way.
-        for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-            if (motor_enabled[i]) {
-                motor_out[i] = min_pwm;
-            }
-        }
-        _a = amin;
+        set_throttle_from_acc(_amin);
+        _a = _amin;
     }
 
     ///////////////////////////////////////////////////
     // END SPEC IMPLEMENTATION
     ///////////////////////////////////////////////////
+    
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
+    // compute the proposed motor signals
+    // these proposed motor signals come
+    // from the pilot/other controllers
+    compute_outputs_armed(motor_out);
 
     // write the control signals to the motors
     write_outputs(motor_out);

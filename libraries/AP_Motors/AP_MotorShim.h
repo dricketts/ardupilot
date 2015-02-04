@@ -7,6 +7,7 @@
 #include <AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
 #include "AP_MotorsQuad.h"    // Parent Motors Quad library
+#include "AP_Motors_Class.h"    // Parent Motors Quad library
 
 // This is an upper bound height shim
 // This means that the shim takes a proposed
@@ -19,26 +20,11 @@
 // such that the height of the system will
 // always stay below the upper bound.
 
-// Ratio between pwm of a single motor
-// (scaled to be between 0 and 1) and the thrust
-// it produces. Equal to (g/(4*hover_throttle)).
-// Taken from python simulation in
-// Tools/autotest/pysim/multicopter.py
-#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-  static const float pwm_accel_scale = 544.8138888889;
-#endif
 // Acceleration due to gravity in cm/s/s.
 // Sensors seem to use cm as length unit.
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = -980.665;
-// minimum value the shim will send to the motors
-// when the safety check fails
-static const float min_pwm = 1200;
-// Maximum possible acceleration.
-static const float amax = (4 * pwm_accel_scale) + gravity;
-// Minimum acceleration for the shim
-static const float amin = (4*((min_pwm-1000.0)/1000.0)*pwm_accel_scale) + gravity;
 
 /// @class      AP_MotorShim
 class AP_MotorShim : public AP_MotorsQuad {
@@ -51,10 +37,19 @@ public:
     // using new altitude and vertical velocity estimates.
     AP_MotorShim( RC_Channel& rc_roll, RC_Channel& rc_pitch, RC_Channel& rc_throttle, RC_Channel& rc_yaw,
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
-                  const float d, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
+                  const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
           _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0) {
+
     };
+
+    virtual void set_mid_throttle(uint16_t mid_throttle) {
+        AP_Motors::set_mid_throttle(mid_throttle);
+        _throttle_to_accel = -gravity/mid_throttle;
+        _break_throttle = mid_throttle/2;
+        _amax = (_throttle_to_accel*1000.0) + gravity;
+        _amin = (_throttle_to_accel*_break_throttle) + gravity;
+    }
 
 protected:
     // output - sends commands to the motors
@@ -108,10 +103,12 @@ private:
     // acceleration. To keep things as close as possible to the original
     // proposed signals, we keep to ratio between different components
     // of motor_out the same.
-    void smoothing_shim(int16_t motor_out[]);
+    void smoothing_shim();
 
     // converts the motor signals to acceleration
-    float get_acceleration(int16_t motor_out[]);
+    float get_acceleration();
+
+    void set_throttle_from_acc(float A);
 
     // returns the most recently read altitude
     float get_altitude();
@@ -141,6 +138,16 @@ private:
     // looks into the future when computing the largest
     // possible safe acceleration
     const float _smooth_lookahead;
+
+    // Ratio between the throttle and the acceleration
+    // it produces. Equal to (g/hover_throttle).
+    float _throttle_to_accel;
+
+    float _break_throttle;
+
+    float _amin;
+
+    float _amax;
 
     // the object that gives sensor readings
     const AP_InertialNav_NavEKF& _inertial_nav;
