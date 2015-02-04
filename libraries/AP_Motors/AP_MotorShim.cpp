@@ -16,11 +16,22 @@ static float sdist(float V) {
     return -(V*V)/(2*amin);
 }
 
-bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
-                                  float t2, float a1, float a2) {
+// Gives the height of the vehicle if it starts at H with
+// initial velocity V, travels for t1 time at acceleration
+// a1, then travels for t2 time at acceleration a2, and
+// then comes to a stop with acceleration amin.
+float AP_MotorShim::bound_expr(float H, float V, float t1,
+                               float t2, float a1, float a2) {
     return H + tdist(V, a1, t1)
         + tdist(V + (a1*_d), a2, t2)
-        + sdist(V + (a1*_d) + (a2*t2)) <= _ub;
+        + sdist(V + (a1*_d) + (a2*t2));
+}
+
+// Returns true iff bound_expr on the same arguments is at most
+// the verified shim's upper bound
+bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
+                                  float t2, float a1, float a2) {
+    return bound_expr(H, V, t1, t2, a1, a2) <= _ub_shim;
 }
 
 // safety check on the proposed acceleration
@@ -46,16 +57,60 @@ bool AP_MotorShim::is_safe2(float A, float H, float V) {
         (_a < 0 && tdist(V, 0, _d) < 0 && A < 0 && bound_is_safe(H, V, 0, _d, 0, 0));
 }
 
+// The expression appearing in the square root of safe_accel2.
+// It's useful to factor this out so that we can check for
+// non-negativity in the argument we pass.
+float AP_MotorShim::sqrt_expr(float H, float V, float t1,
+                              float t2, float a1) {
+    return amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
+                 (amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
+
+}
+
+// Returns the maximum value for a2 that would return true
+// for bound_is_safe(H, V, t1, t2, a1, a2). Returns 0 if
+// no such value exists.
+float AP_MotorShim::safe_accel2(float H, float V, float t1,
+                                float t2, float a1) {
+    if (sqrt_expr(H, V, t1, t2, a1) >= 0) {
+        return (sqrt(sqrt_expr(H, V, t1, t2, a1))
+                - (2*a1*_d) + (amin*t2) - (2*V))
+            /(2*t2);
+    } else {
+        return 0;
+    }
+}
+
+// Computes the maximum value A that would allow the
+// vehicle to stop in time if we apply acceleration
+// A for the next _smooth_lookahead iterations of this
+// shim rather than just for the next iteration.
+// Returns 0 if no such value is found.
+float AP_MotorShim::compute_safe2(float H, float V) {
+    float lookahead = _d*_smooth_lookahead;
+    if (_a >= 0 && tdist(V, _a, _d) >= 0) {
+        return safe_accel2(H, V, _d, lookahead, _a);
+    } else if (_a >= 0 && tdist(V, _a, _d) < 0) {
+        return safe_accel2(H, V, 0, lookahead, _a);
+    } else if (_a < 0 && tdist(V, 0, _d) >= 0) {
+        return safe_accel2(H, V, _d, lookahead, 0);
+    } else if (_a < 0 && tdist(V, 0, _d) < 0) {
+        return safe_accel2(H, V, 0, lookahead, 0);
+    }
+
+    return 0;
+}
+
 // Gives an estimate of an upper bound on acceleration.
 // Gives a conservative upper bound by assuming the
 // quadcopter is perfectly level and thus all
 // motors are pointed upwards.
 float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
     float accel = 0;
-    for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        accel += ((motor_out[i] - 1000)/1000)*pwm_accel_scale;
+    for (int8_t i=0; i<4; i++) {
+        accel += ((motor_out[i] - 1000)/1000.0)*pwm_accel_scale;
     }
-    return accel;
+    return accel + gravity;
 }
 
 // gets the most recently estimated altitude
@@ -66,6 +121,37 @@ float AP_MotorShim::get_altitude() {
 // gets the most recently estimated vertical velocity
 float AP_MotorShim::get_vertical_vel() {
     return _inertial_nav.get_velocity_z();
+}
+
+// This shim is used to try to smooth the motion of the vehicle,
+// rather than engaging the harsh deceleration of the verified
+// shim. The shim compute the maximum acceleration that will be
+// safe (won't engage the breaking safety mode of the verified
+// shim) for the next _smooth_lookahead iterations. If this
+// value is less than the acceleration induced by the input
+// motor_out, then motor_out is set to deliver this acceleration.
+// There is more than one way to set motor_out to deliver the new
+// acceleration. To keep things as close as possible to the original
+// proposed signals, we keep to ratio between different components
+// of motor_out the same.
+void AP_MotorShim::smoothing_shim(int16_t motor_out[]) {
+    float H = get_altitude();
+    float V = get_vertical_vel();
+    float A_proposal = get_acceleration(motor_out);
+
+    // The following check would never fail with real arithmetic
+    // but could fail with floating point arithmetic.
+    if (A_proposal-gravity > 0) {
+        float A_safe = compute_safe2(H, V);
+        if (A_safe < A_proposal) {
+            float ratio = (A_safe-gravity)/(A_proposal-gravity);
+            for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+                if (motor_enabled[i]) {
+                    motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
+                }
+            }
+        }
+    }
 }
 
 // This function is, in a loose sense, an implementation
@@ -92,9 +178,8 @@ void AP_MotorShim::output_armed()
     // from the pilot/other controllers
     compute_outputs_armed(motor_out);
 
-    // TODO - limit the motor voltages to something that
-    // will pass the safety test. This might make flight
-    // smoother than repeatedly turning on and off motors.
+    // Run the unverified smoothing shim
+    smoothing_shim(motor_out);
 
     ///////////////////////////////////////////////////
     // BEGIN SPEC IMPLEMENTATION
@@ -102,9 +187,10 @@ void AP_MotorShim::output_armed()
 
     // These are variable mappings. These would need
     // to be specified by the user.
-    float A = get_acceleration(motor_out);
+
     float H = get_altitude();
     float V = get_vertical_vel();
+    float A = get_acceleration(motor_out);
 
     // SafeCtrl is implemented as is_safe2.
     // SafeCtrl takes no argument, but is_safe2
@@ -133,12 +219,11 @@ void AP_MotorShim::output_armed()
         // uniform way.
         for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
-                motor_out[i] = 0;
+                motor_out[i] = min_pwm;
             }
         }
         _a = amin;
     }
-
 
     ///////////////////////////////////////////////////
     // END SPEC IMPLEMENTATION

@@ -138,6 +138,9 @@
 #ifndef SHIM_UB
  #define SHIM_UB 4000 // shim upper bound in cm
 #endif
+#ifndef SHIM_SMOOTH_LOOKAHEAD
+ #define SHIM_SMOOTH_LOOKAHEAD 10 // smoothing shim lookahead
+#endif
 #ifndef SHIM_DELAY
  #define SHIM_DELAY 0.2
 #endif
