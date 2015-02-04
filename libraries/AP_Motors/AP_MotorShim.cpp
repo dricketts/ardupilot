@@ -164,7 +164,7 @@ void AP_MotorShim::smoothing_shim() {
 void AP_MotorShim::output_armed()
 {
     // Run the unverified smoothing shim
-    //smoothing_shim();
+    smoothing_shim();
 
     ///////////////////////////////////////////////////
     // BEGIN SPEC IMPLEMENTATION
