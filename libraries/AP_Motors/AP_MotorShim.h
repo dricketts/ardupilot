@@ -7,6 +7,7 @@
 #include <AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
 #include "AP_MotorsQuad.h"    // Parent Motors Quad library
+#include "AP_Motors_Class.h"    // Parent Motors Quad library
 
 // This is an upper bound height shim
 // This means that the shim takes a proposed
@@ -48,13 +49,15 @@ public:
     // using new altitude and vertical velocity estimates.
     AP_MotorShim( RC_Channel& rc_roll, RC_Channel& rc_pitch, RC_Channel& rc_throttle, RC_Channel& rc_yaw,
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
-                  const float d, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
+                  const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
           _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0) {
+
     };
 
     virtual void set_mid_throttle(uint16_t mid_throttle) {
         AP_Motors::set_mid_throttle(mid_throttle);
+        _throttle_to_accel = -gravity/mid_throttle;
     }
 
 protected:
@@ -102,17 +105,20 @@ private:
     // rather than engaging the harsh deceleration of the verified
     // shim. The shim compute the maximum acceleration that will be
     // safe (won't engage the breaking safety mode of the verified
-    // shim) for the next _smooth_lookahead iterations. If this
-    // value is less than the acceleration induced by the input
-    // then motor_out is set to deliver this acceleration.
-    // There is more than one way to set motor_out to deliver the new
-    // acceleration. To keep things as close as possible to the original
-    // proposed signals, we keep to ratio between different components
-    // of motor_out the same.
+    // shim) for the next _smooth_lookahead iterations.
     float smoothing_shim(float A_proposal);
 
     // converts the motor signals to acceleration
+    float get_acc_from_throttle();
+
+    // Gives an estimate of an upper bound on acceleration
+    // using the motor values.
+    // Gives a conservative upper bound by assuming the
+    // quadcopter is perfectly level and thus all
+    // motors are pointed upwards.
     float get_acceleration(int16_t motor_out[]);
+
+    void set_throttle_from_acc(float A);
 
     // Sets the motors to match the new total acceleration.
     // There is more than one way to set motor_out to deliver the new
@@ -127,7 +133,18 @@ private:
     // returns the most recently read vertical velocity
     float get_vertical_vel();
 
+    // The shim implementation from OneDimAccShim2.v.
+    // This sets the resulting safe acceleration in _a.
     void verified_shim2(float A);
+
+    // The version of the shim run before the motor
+    // mixing code. This operates on throttles.
+    void shim_premix();
+
+    // The version of the shim run after the motor
+    // mixing code. This operates on values sent to the
+    // motors.
+    void shim_postmix(int16_t motor_out[]);
 
     // the previous acceleration
     float _a;
@@ -151,6 +168,10 @@ private:
     // looks into the future when computing the largest
     // possible safe acceleration
     const float _smooth_lookahead;
+
+    // Ratio between the throttle and the acceleration
+    // it produces. Equal to (g/hover_throttle).
+    float _throttle_to_accel;
 
     // the object that gives sensor readings
     const AP_InertialNav_NavEKF& _inertial_nav;

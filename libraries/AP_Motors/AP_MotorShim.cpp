@@ -101,7 +101,17 @@ float AP_MotorShim::compute_safe2(float H, float V) {
     return 0;
 }
 
-// Gives an estimate of an upper bound on acceleration.
+// Gives an estimate of an upper bound on acceleration
+// using the throttle value.
+// Gives a conservative upper bound by assuming the
+// quadcopter is perfectly level and thus all
+// motors are pointed upwards.
+float AP_MotorShim::get_acc_from_throttle() {
+    return (get_throttle_out()*_throttle_to_accel) + gravity;
+}
+
+// Gives an estimate of an upper bound on acceleration
+// using the motor values.
 // Gives a conservative upper bound by assuming the
 // quadcopter is perfectly level and thus all
 // motors are pointed upwards.
@@ -111,6 +121,10 @@ float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
         accel += ((motor_out[i] - 1000)/1000.0)*pwm_accel_scale;
     }
     return accel + gravity;
+}
+
+void AP_MotorShim::set_throttle_from_acc(float A) {
+    set_throttle((A-gravity)/_throttle_to_accel);
 }
 
 // Sets the motors to match the new total acceleration.
@@ -164,11 +178,7 @@ void AP_MotorShim::verified_shim2(float A) {
 
     // SafeCtrl is implemented as is_safe2.
     // SafeCtrl takes no argument, but is_safe2
-    // must take arguments whose value is the expressions
-    // specified by the variable mappings. We could just
-    // put all of these expressions inline, but then
-    // get_acceleration would be recomputed many times.
-    // Performance is important here.
+    // must take arguments.
     //
     // \/ /\ SafeCtrl
     //    /\ a! = A
@@ -182,30 +192,35 @@ void AP_MotorShim::verified_shim2(float A) {
 
 }
 
-// This function is, in a loose sense, an implementation
-// of Ctrl from OneDimAccShim1.v or OneDimAccShim2.v,
-// depending on which version of is_safe you use. Let's
-// consider OneDimAccShim2.v:
-//
-//   Ctrl ==
-//     \/ /\ SafeCtrl
-//        /\ a! = A
-//     \/ a! = amin
-//
-// I've put inline comments below to show where each
-// part of this spec is implemented. The comments
-// are between BEGIN SPEC IMPLEMENTATION and
-// END SPEC IMPLEMENTATION.
-//
-// output_armed - sends control signals to the motors
-void AP_MotorShim::output_armed()
-{
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
-    // compute the proposed motor signals
-    // these proposed motor signals come
-    // from the pilot/other controllers
-    compute_outputs_armed(motor_out);
+// The version of the shim run before the motor
+// mixing code. This operates on throttles.
+void AP_MotorShim::shim_premix() {
+    // Run the unverified smoothing shim
+    float A_proposal = get_acc_from_throttle();
+    float A_safe = smoothing_shim(A_proposal);
+    if (A_safe < A_proposal) {
+        set_throttle_from_acc(A_safe);
+    }
 
+    ///////////////////////////////////////////////////
+    // BEGIN SPEC IMPLEMENTATION
+    ///////////////////////////////////////////////////
+
+    float A = get_acc_from_throttle();
+    verified_shim2(A);
+    if (_a < A) {
+        set_throttle_from_acc(_a);
+    }
+
+    ///////////////////////////////////////////////////
+    // END SPEC IMPLEMENTATION
+    ///////////////////////////////////////////////////
+}
+
+// The version of the shim run after the motor
+// mixing code. This operates on values sent to the
+// motors.
+void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
     // Run the unverified smoothing shim
     float A_proposal = get_acceleration(motor_out);
     float A_safe = smoothing_shim(A_proposal);
@@ -226,6 +241,46 @@ void AP_MotorShim::output_armed()
     ///////////////////////////////////////////////////
     // END SPEC IMPLEMENTATION
     ///////////////////////////////////////////////////
+}
+
+// This function is, in a loose sense, an implementation
+// of Ctrl from OneDimAccShim1.v or OneDimAccShim2.v,
+// depending on which version of is_safe you use. Let's
+// consider OneDimAccShim2.v:
+//
+//   Ctrl ==
+//     \/ /\ SafeCtrl
+//        /\ a! = A
+//     \/ a! = amin
+//
+// There are actually two implementations of the spec.
+// One implementation (shim_premix) occurs before the
+// motor mixing code is run and operates on the throttle.
+// The other (shim_postmix) runs after the motor mixing
+// code is run and operates on the values actually sent to
+// the motors.
+//
+// I've put inline comments in the pre and postmix
+// functions to show where each part of this spec is
+// implemented. The comments are between
+// BEGIN SPEC IMPLEMENTATION and
+// END SPEC IMPLEMENTATION.
+
+//
+// output_armed - sends control signals to the motors
+void AP_MotorShim::output_armed()
+{
+
+    shim_premix();
+    
+    // final outputs sent to the motors
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];
+    // compute the proposed motor signals
+    // these proposed motor signals come
+    // from the pilot/other controllers
+    compute_outputs_armed(motor_out);
+
+    shim_postmix(motor_out);
 
     // write the control signals to the motors
     write_outputs(motor_out);
