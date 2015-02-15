@@ -20,11 +20,23 @@
 // such that the height of the system will
 // always stay below the upper bound.
 
+// Ratio between pwm of a single motor
+// (scaled to be between 0 and 1) and the thrust
+// it produces. Equal to (g/(4*hover_throttle)).
+// Taken from python simulation in
+// Tools/autotest/pysim/multicopter.py
+#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+  static const float pwm_accel_scale = 544.8138888889;
+#endif
 // Acceleration due to gravity in cm/s/s.
 // Sensors seem to use cm as length unit.
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = -980.665;
+// Maximum possible acceleration.
+static const float amax = (4 * pwm_accel_scale) + gravity;
+// Minimum acceleration for the shim
+static const float amin = 500 + gravity;
 
 /// @class      AP_MotorShim
 class AP_MotorShim : public AP_MotorsQuad {
@@ -46,9 +58,6 @@ public:
     virtual void set_mid_throttle(uint16_t mid_throttle) {
         AP_Motors::set_mid_throttle(mid_throttle);
         _throttle_to_accel = -gravity/mid_throttle;
-        _break_throttle = mid_throttle/2;
-        _amax = (_throttle_to_accel*1000.0) + gravity;
-        _amin = (_throttle_to_accel*_break_throttle) + gravity;
     }
 
 protected:
@@ -96,17 +105,11 @@ private:
     // rather than engaging the harsh deceleration of the verified
     // shim. The shim compute the maximum acceleration that will be
     // safe (won't engage the breaking safety mode of the verified
-    // shim) for the next _smooth_lookahead iterations. If this
-    // value is less than the acceleration induced by the input
-    // motor_out, then motor_out is set to deliver this acceleration.
-    // There is more than one way to set motor_out to deliver the new
-    // acceleration. To keep things as close as possible to the original
-    // proposed signals, we keep to ratio between different components
-    // of motor_out the same.
-    void smoothing_shim();
+    // shim) for the next _smooth_lookahead iterations.
+    float smoothing_shim(float A_proposal);
 
     // converts the motor signals to acceleration
-    float get_acceleration();
+    float get_acc_from_throttle();
 
     void set_throttle_from_acc(float A);
 
@@ -115,6 +118,10 @@ private:
 
     // returns the most recently read vertical velocity
     float get_vertical_vel();
+
+    // The shim implementation from OneDimAccShim2.v.
+    // This sets the resulting safe acceleration in _a.
+    void verified_shim2(float A);
 
     // the previous acceleration
     float _a;
@@ -142,12 +149,6 @@ private:
     // Ratio between the throttle and the acceleration
     // it produces. Equal to (g/hover_throttle).
     float _throttle_to_accel;
-
-    float _break_throttle;
-
-    float _amin;
-
-    float _amax;
 
     // the object that gives sensor readings
     const AP_InertialNav_NavEKF& _inertial_nav;

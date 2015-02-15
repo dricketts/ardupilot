@@ -12,19 +12,19 @@ static float tdist(float V, float a, float t) {
 
 // distance required to stop when traveling
 // at positive velocity V
-static float sdist(float V, float amin) {
+static float sdist(float V) {
     return -(V*V)/(2*amin);
 }
 
 // Gives the height of the vehicle if it starts at H with
 // initial velocity V, travels for t1 time at acceleration
 // a1, then travels for t2 time at acceleration a2, and
-// then comes to a stop with acceleration _amin.
+// then comes to a stop with acceleration amin.
 float AP_MotorShim::bound_expr(float H, float V, float t1,
                                float t2, float a1, float a2) {
     return H + tdist(V, a1, t1)
         + tdist(V + (a1*_d), a2, t2)
-        + sdist(V + (a1*_d) + (a2*t2), _amin);
+        + sdist(V + (a1*_d) + (a2*t2));
 }
 
 // Returns true iff bound_expr on the same arguments is at most
@@ -38,8 +38,8 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
 // taken from OneDimAccShim1.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe1(float A, float H, float V) {
-    return bound_is_safe(H, V, _d, _d, _amax, _amax) &&
-        bound_is_safe(H, V, 0, _d, _amax, _amax);
+    return bound_is_safe(H, V, _d, _d, amax, amax) &&
+        bound_is_safe(H, V, 0, _d, amax, amax);
 }
 
 // safety check on the proposed acceleration
@@ -62,8 +62,8 @@ bool AP_MotorShim::is_safe2(float A, float H, float V) {
 // non-negativity in the argument we pass.
 float AP_MotorShim::sqrt_expr(float H, float V, float t1,
                               float t2, float a1) {
-    return _amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
-                 (_amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
+    return amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
+                 (amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
 
 }
 
@@ -74,7 +74,7 @@ float AP_MotorShim::safe_accel2(float H, float V, float t1,
                                 float t2, float a1) {
     if (sqrt_expr(H, V, t1, t2, a1) >= 0) {
         return (sqrt(sqrt_expr(H, V, t1, t2, a1))
-                - (2*a1*_d) + (_amin*t2) - (2*V))
+                - (2*a1*_d) + (amin*t2) - (2*V))
             /(2*t2);
     } else {
         return 0;
@@ -105,7 +105,7 @@ float AP_MotorShim::compute_safe2(float H, float V) {
 // Gives a conservative upper bound by assuming the
 // quadcopter is perfectly level and thus all
 // motors are pointed upwards.
-float AP_MotorShim::get_acceleration() {
+float AP_MotorShim::get_acc_from_throttle() {
     return (get_throttle_out()*_throttle_to_accel) + gravity;
 }
 
@@ -127,22 +127,38 @@ float AP_MotorShim::get_vertical_vel() {
 // rather than engaging the harsh deceleration of the verified
 // shim. The shim compute the maximum acceleration that will be
 // safe (won't engage the breaking safety mode of the verified
-// shim) for the next _smooth_lookahead iterations. If this
-// value is less than the acceleration induced by the input
-// motor_out, then motor_out is set to deliver this acceleration.
-// There is more than one way to set motor_out to deliver the new
-// acceleration. To keep things as close as possible to the original
-// proposed signals, we keep to ratio between different components
-// of motor_out the same.
-void AP_MotorShim::smoothing_shim() {
+// shim) for the next _smooth_lookahead iterations.
+float AP_MotorShim::smoothing_shim(float A_proposal) {
     float H = get_altitude();
     float V = get_vertical_vel();
-    float A_proposal = get_acceleration();
 
-    float A_safe = compute_safe2(H, V);
-    if (A_safe < A_proposal) {
-        set_throttle_from_acc(A_safe);
+    return compute_safe2(H, V);
+}
+
+// The shim implementation from OneDimAccShim2.v.
+// This sets the resulting safe acceleration in _a.
+void AP_MotorShim::verified_shim2(float A) {
+    float H = get_altitude();
+    float V = get_vertical_vel();
+
+    // SafeCtrl is implemented as is_safe2.
+    // SafeCtrl takes no argument, but is_safe2
+    // must take arguments whose value is the expressions
+    // specified by the variable mappings. We could just
+    // put all of these expressions inline, but then
+    // get_acc_from_throttle would be recomputed many times.
+    // Performance is important here.
+    //
+    // \/ /\ SafeCtrl
+    //    /\ a! = A
+    if (is_safe2(A, H, V)) {
+        _a = A;
     }
+    // \/ a! = amin
+    else {
+        _a = amin;
+    }
+
 }
 
 // This function is, in a loose sense, an implementation
@@ -164,45 +180,20 @@ void AP_MotorShim::smoothing_shim() {
 void AP_MotorShim::output_armed()
 {
     // Run the unverified smoothing shim
-    smoothing_shim();
+    float A_proposal = get_acc_from_throttle();
+    float A_safe = smoothing_shim(A_proposal);
+    if (A_safe < A_proposal) {
+        set_throttle_from_acc(A_safe);
+    }
 
     ///////////////////////////////////////////////////
     // BEGIN SPEC IMPLEMENTATION
     ///////////////////////////////////////////////////
 
-    // These are variable mappings. These would need
-    // to be specified by the user.
-
-    float H = get_altitude();
-    float V = get_vertical_vel();
-    float A = get_acceleration();
-
-    // SafeCtrl is implemented as is_safe2.
-    // SafeCtrl takes no argument, but is_safe2
-    // must take arguments whose value is the expressions
-    // specified by the variable mappings. We could just
-    // put all of these expressions inline, but then
-    // get_acceleration would be recomputed many times.
-    // Performance is important here.
-    //
-    // \/ /\ SafeCtrl
-    //    /\ a! = A
-    if (is_safe2(A, H, V)) {
-        _a = A;
-    }
-    // \/ a! = amin
-    else {
-        // The implementation of a! = amin is a bit weird.
-        // It actually corresponds to two C++ statements:
-        //   1) A write to the throttle
-        //   2) A write to the variable storing the previous
-        //      acceleration.
-        // We didn't have to do part (1) in the if block
-        // because no changes need to be made to motor_out.
-        // I'm not sure how to handle these two cases in a
-        // uniform way.
-        set_throttle_from_acc(_amin);
-        _a = _amin;
+    float A = get_acc_from_throttle();
+    verified_shim2(A);
+    if (_a < A) {
+        set_throttle_from_acc(_a);
     }
 
     ///////////////////////////////////////////////////
