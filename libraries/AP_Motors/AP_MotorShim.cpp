@@ -113,6 +113,21 @@ float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
     return accel + gravity;
 }
 
+// Sets the motors to match the new total acceleration.
+// There is more than one way to set motor_out to deliver the new
+// acceleration. To keep things as close as possible to the original
+// proposed signals, we keep the ratio between different components
+// of motor_out the same. In other words, we linearly scale the motors.
+void AP_MotorShim::set_motors_from_acc(float A_new, int16_t motor_out[]) {
+    float A_old = get_acceleration(motor_out);
+    float ratio = (A_new-gravity)/(A_old-gravity);
+    for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
+        }
+    }
+}
+
 // gets the most recently estimated altitude
 float AP_MotorShim::get_altitude() {
     return _inertial_nav.get_altitude();
@@ -127,31 +142,44 @@ float AP_MotorShim::get_vertical_vel() {
 // rather than engaging the harsh deceleration of the verified
 // shim. The shim compute the maximum acceleration that will be
 // safe (won't engage the breaking safety mode of the verified
-// shim) for the next _smooth_lookahead iterations. If this
-// value is less than the acceleration induced by the input
-// motor_out, then motor_out is set to deliver this acceleration.
-// There is more than one way to set motor_out to deliver the new
-// acceleration. To keep things as close as possible to the original
-// proposed signals, we keep to ratio between different components
-// of motor_out the same.
-void AP_MotorShim::smoothing_shim(int16_t motor_out[]) {
+// shim) for the next _smooth_lookahead iterations.
+float AP_MotorShim::smoothing_shim(float A_proposal) {
     float H = get_altitude();
     float V = get_vertical_vel();
-    float A_proposal = get_acceleration(motor_out);
 
     // The following check would never fail with real arithmetic
     // but could fail with floating point arithmetic.
     if (A_proposal-gravity > 0) {
-        float A_safe = compute_safe2(H, V);
-        if (A_safe < A_proposal) {
-            float ratio = (A_safe-gravity)/(A_proposal-gravity);
-            for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-                if (motor_enabled[i]) {
-                    motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
-                }
-            }
-        }
+        return compute_safe2(H, V);
     }
+
+    return 0;
+}
+
+// The shim implementation from OneDimAccShim2.v.
+// This sets the resulting safe acceleration in _a.
+void AP_MotorShim::verified_shim2(float A) {
+    float H = get_altitude();
+    float V = get_vertical_vel();
+
+    // SafeCtrl is implemented as is_safe2.
+    // SafeCtrl takes no argument, but is_safe2
+    // must take arguments whose value is the expressions
+    // specified by the variable mappings. We could just
+    // put all of these expressions inline, but then
+    // get_acceleration would be recomputed many times.
+    // Performance is important here.
+    //
+    // \/ /\ SafeCtrl
+    //    /\ a! = A
+    if (is_safe2(A, H, V)) {
+        _a = A;
+    }
+    // \/ a! = amin
+    else {
+        _a = amin;
+    }
+
 }
 
 // This function is, in a loose sense, an implementation
@@ -179,50 +207,20 @@ void AP_MotorShim::output_armed()
     compute_outputs_armed(motor_out);
 
     // Run the unverified smoothing shim
-    smoothing_shim(motor_out);
+    float A_proposal = get_acceleration(motor_out);
+    float A_safe = smoothing_shim(A_proposal);
+    if (A_safe < A_proposal) {
+        set_motors_from_acc(A_safe, motor_out);
+    }
 
     ///////////////////////////////////////////////////
     // BEGIN SPEC IMPLEMENTATION
     ///////////////////////////////////////////////////
 
-    // These are variable mappings. These would need
-    // to be specified by the user.
-
-    float H = get_altitude();
-    float V = get_vertical_vel();
     float A = get_acceleration(motor_out);
-
-    // SafeCtrl is implemented as is_safe2.
-    // SafeCtrl takes no argument, but is_safe2
-    // must take arguments whose value is the expressions
-    // specified by the variable mappings. We could just
-    // put all of these expressions inline, but then
-    // get_acceleration would be recomputed many times.
-    // Performance is important here.
-    //
-    // \/ /\ SafeCtrl
-    //    /\ a! = A
-    if (is_safe2(A, H, V)) {
-        _a = A;
-    }
-    // \/ a! = amin
-    else {
-        // The implementation of a! = amin is a bit weird.
-        // It actually corresponds to two C++ statements:
-        //   1) A write to the motor control signal array
-        //      (motor_out).
-        //   2) A write to the variable storing the previous
-        //      acceleration.
-        // We didn't have to do part (1) in the if block
-        // because no changes need to be made to motor_out.
-        // I'm not sure how to handle these two cases in a
-        // uniform way.
-        for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-            if (motor_enabled[i]) {
-                motor_out[i] = min_pwm;
-            }
-        }
-        _a = amin;
+    verified_shim2(A);
+    if (_a < A) {
+        set_motors_from_acc(_a, motor_out);
     }
 
     ///////////////////////////////////////////////////

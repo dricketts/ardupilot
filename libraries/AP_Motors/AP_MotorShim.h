@@ -32,13 +32,10 @@
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = -980.665;
-// minimum value the shim will send to the motors
-// when the safety check fails
-static const float min_pwm = 1200;
 // Maximum possible acceleration.
 static const float amax = (4 * pwm_accel_scale) + gravity;
 // Minimum acceleration for the shim
-static const float amin = (4*((min_pwm-1000.0)/1000.0)*pwm_accel_scale) + gravity;
+static const float amin = 500 + gravity;
 
 /// @class      AP_MotorShim
 class AP_MotorShim : public AP_MotorsQuad {
@@ -55,6 +52,10 @@ public:
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
           _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0) {
     };
+
+    virtual void set_mid_throttle(uint16_t mid_throttle) {
+        AP_Motors::set_mid_throttle(mid_throttle);
+    }
 
 protected:
     // output - sends commands to the motors
@@ -103,21 +104,30 @@ private:
     // safe (won't engage the breaking safety mode of the verified
     // shim) for the next _smooth_lookahead iterations. If this
     // value is less than the acceleration induced by the input
-    // motor_out, then motor_out is set to deliver this acceleration.
+    // then motor_out is set to deliver this acceleration.
     // There is more than one way to set motor_out to deliver the new
     // acceleration. To keep things as close as possible to the original
     // proposed signals, we keep to ratio between different components
     // of motor_out the same.
-    void smoothing_shim(int16_t motor_out[]);
+    float smoothing_shim(float A_proposal);
 
     // converts the motor signals to acceleration
     float get_acceleration(int16_t motor_out[]);
+
+    // Sets the motors to match the new total acceleration.
+    // There is more than one way to set motor_out to deliver the new
+    // acceleration. To keep things as close as possible to the original
+    // proposed signals, we keep the ratio between different components
+    // of motor_out the same. In other words, we linearly scale the motors.
+    void set_motors_from_acc(float A_new, int16_t motor_out[]);
 
     // returns the most recently read altitude
     float get_altitude();
 
     // returns the most recently read vertical velocity
     float get_vertical_vel();
+
+    void verified_shim2(float A);
 
     // the previous acceleration
     float _a;

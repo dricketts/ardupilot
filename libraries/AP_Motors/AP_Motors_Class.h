@@ -98,7 +98,7 @@ public:
     void                set_min_throttle(uint16_t min_throttle);
     // set_mid_throttle - sets the mid throttle which is close to the hover throttle of the copter
     // this is used to limit the amount that the stability patch will increase the throttle to give more room for roll, pitch and yaw control
-    void                set_mid_throttle(uint16_t mid_throttle);
+    virtual void        set_mid_throttle(uint16_t mid_throttle);
 
     int16_t             throttle_min() const { return _min_throttle;}
     int16_t             throttle_max() const { return _max_throttle;}
