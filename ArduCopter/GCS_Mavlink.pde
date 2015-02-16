@@ -39,6 +39,13 @@ static void gcs_send_deferred(void)
  *  pattern below when adding any new messages
  */
 
+static NOINLINE void send_shim_status(mavlink_channel_t chan)
+{
+#if SHIM
+    mavlink_msg_shim_enable_disable_send(chan, motors.shim_on());
+#endif
+}
+
 static NOINLINE void send_heartbeat(mavlink_channel_t chan)
 {
     uint8_t base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
@@ -657,6 +664,10 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         // unused
         break;
 
+    case MSG_SHIM_STATUS:
+        send_shim_status(chan);
+        break;
+
     case MSG_RETRY_DEFERRED:
         break; // just here to prevent a warning
 
@@ -859,6 +870,7 @@ GCS_MAVLINK::data_stream_send(void)
     if (stream_trigger(STREAM_EXTRA1)) {
         send_message(MSG_ATTITUDE);
         send_message(MSG_SIMSTATE);
+        send_message(MSG_SHIM_STATUS);
     }
 
     if (gcs_out_of_time) return;
@@ -903,6 +915,20 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     uint8_t result = MAV_RESULT_FAILED;         // assume failure.  Each messages id is responsible for return ACK or NAK if required
 
     switch (msg->msgid) {
+
+    case MAVLINK_MSG_ID_SHIM_ENABLE_DISABLE: // MAV ID: 230
+    {
+#if SHIM
+        // decode packet
+        mavlink_shim_enable_disable_t packet;
+        mavlink_msg_shim_enable_disable_decode(msg, &packet);
+        if (packet.enable == 0) {
+            motors.disable_shim();
+        } else {
+            motors.enable_shim();
+        }
+#endif
+    }
 
     case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0
     {

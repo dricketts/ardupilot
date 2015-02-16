@@ -271,7 +271,9 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
 void AP_MotorShim::output_armed()
 {
 
-    shim_premix();
+    if (_shim_on) {
+        shim_premix();
+    }
     
     // final outputs sent to the motors
     int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];
@@ -280,7 +282,9 @@ void AP_MotorShim::output_armed()
     // from the pilot/other controllers
     compute_outputs_armed(motor_out);
 
-    shim_postmix(motor_out);
+    if (_shim_on) {
+        shim_postmix(motor_out);
+    }
 
     // write the control signals to the motors
     write_outputs(motor_out);

@@ -51,7 +51,7 @@ public:
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
                   const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
-          _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0) {
+          _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(true) {
 
     };
 
@@ -59,6 +59,12 @@ public:
         AP_Motors::set_mid_throttle(mid_throttle);
         _throttle_to_accel = -gravity/mid_throttle;
     }
+
+    void enable_shim() {_shim_on = true;}
+
+    void disable_shim() {_shim_on = false;}
+
+    bool shim_on() {return _shim_on;}
 
 protected:
     // output - sends commands to the motors
@@ -175,5 +181,8 @@ private:
 
     // the object that gives sensor readings
     const AP_InertialNav_NavEKF& _inertial_nav;
+
+    // flag that is true iff the shim is one
+    bool _shim_on;
 
 };

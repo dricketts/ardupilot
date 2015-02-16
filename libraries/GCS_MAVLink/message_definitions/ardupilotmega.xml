@@ -33,6 +33,7 @@
               <param index="6">Empty</param>
               <param index="7">Empty</param>
             </entry>
+
           </enum>
 	  
 	  	<!--  AP_Limits Enums -->
@@ -463,6 +464,11 @@
       <description>2nd Battery status</description>
       <field type="uint16_t" name="voltage">voltage in millivolts</field>
       <field type="int16_t" name="current_battery">Battery current, in 10*milliamperes (1 = 10 milliampere), -1: autopilot does not measure the current</field>
+    </message>
+
+    <message name="SHIM_ENABLE_DISABLE" id="230">
+      <description>Command to enable or disable the shim</description>
+      <field type="uint16_t" name="enable">1 to enable, 0 to disable</field>
     </message>
 
      </messages>
