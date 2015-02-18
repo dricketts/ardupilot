@@ -1516,83 +1516,83 @@ static void mavlink_test_battery2(uint8_t system_id, uint8_t component_id, mavli
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }
 
-static void mavlink_test_shim_cmd1(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
+static void mavlink_test_shim_enable_disable(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
 {
 	mavlink_message_t msg;
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
-	mavlink_shim_cmd1_t packet_in = {
-		17.0,45.0,73.0,101.0,129.0,65,132,199
+	mavlink_shim_enable_disable_t packet_in = {
+		5
     };
-	mavlink_shim_cmd1_t packet1, packet2;
+	mavlink_shim_enable_disable_t packet1, packet2;
+        memset(&packet1, 0, sizeof(packet1));
+        	packet1.enable = packet_in.enable;
+        
+        
+
+        memset(&packet2, 0, sizeof(packet2));
+	mavlink_msg_shim_enable_disable_encode(system_id, component_id, &msg, &packet1);
+	mavlink_msg_shim_enable_disable_decode(&msg, &packet2);
+        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+        memset(&packet2, 0, sizeof(packet2));
+	mavlink_msg_shim_enable_disable_pack(system_id, component_id, &msg , packet1.enable );
+	mavlink_msg_shim_enable_disable_decode(&msg, &packet2);
+        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+        memset(&packet2, 0, sizeof(packet2));
+	mavlink_msg_shim_enable_disable_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.enable );
+	mavlink_msg_shim_enable_disable_decode(&msg, &packet2);
+        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+        memset(&packet2, 0, sizeof(packet2));
+        mavlink_msg_to_send_buffer(buffer, &msg);
+        for (i=0; i<mavlink_msg_get_send_buffer_length(&msg); i++) {
+        	comm_send_ch(MAVLINK_COMM_0, buffer[i]);
+        }
+	mavlink_msg_shim_enable_disable_decode(last_msg, &packet2);
+        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+        
+        memset(&packet2, 0, sizeof(packet2));
+	mavlink_msg_shim_enable_disable_send(MAVLINK_COMM_1 , packet1.enable );
+	mavlink_msg_shim_enable_disable_decode(last_msg, &packet2);
+        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+}
+
+static void mavlink_test_shim_params(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
+{
+	mavlink_message_t msg;
+        uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+        uint16_t i;
+	mavlink_shim_params_t packet_in = {
+		17.0,45.0,73.0,101.0,129.0,963498504,77,144
+    };
+	mavlink_shim_params_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
         	packet1.ubverified = packet_in.ubverified;
         	packet1.ubunverified = packet_in.ubunverified;
         	packet1.amin = packet_in.amin;
         	packet1.pwm_accel_scale = packet_in.pwm_accel_scale;
         	packet1.throttle_accel_scale = packet_in.throttle_accel_scale;
-        	packet1.enable = packet_in.enable;
+        	packet1.window_time = packet_in.window_time;
         	packet1.before = packet_in.before;
         	packet1.smooth = packet_in.smooth;
         
         
 
         memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd1_encode(system_id, component_id, &msg, &packet1);
-	mavlink_msg_shim_cmd1_decode(&msg, &packet2);
+	mavlink_msg_shim_params_encode(system_id, component_id, &msg, &packet1);
+	mavlink_msg_shim_params_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd1_pack(system_id, component_id, &msg , packet1.enable , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale );
-	mavlink_msg_shim_cmd1_decode(&msg, &packet2);
+	mavlink_msg_shim_params_pack(system_id, component_id, &msg , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale , packet1.window_time );
+	mavlink_msg_shim_params_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd1_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.enable , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale );
-	mavlink_msg_shim_cmd1_decode(&msg, &packet2);
-        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-        memset(&packet2, 0, sizeof(packet2));
-        mavlink_msg_to_send_buffer(buffer, &msg);
-        for (i=0; i<mavlink_msg_get_send_buffer_length(&msg); i++) {
-        	comm_send_ch(MAVLINK_COMM_0, buffer[i]);
-        }
-	mavlink_msg_shim_cmd1_decode(last_msg, &packet2);
-        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-        
-        memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd1_send(MAVLINK_COMM_1 , packet1.enable , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale );
-	mavlink_msg_shim_cmd1_decode(last_msg, &packet2);
-        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-}
-
-static void mavlink_test_shim_cmd2(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
-{
-	mavlink_message_t msg;
-        uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
-        uint16_t i;
-	mavlink_shim_cmd2_t packet_in = {
-		963497464
-    };
-	mavlink_shim_cmd2_t packet1, packet2;
-        memset(&packet1, 0, sizeof(packet1));
-        	packet1.window_time = packet_in.window_time;
-        
-        
-
-        memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd2_encode(system_id, component_id, &msg, &packet1);
-	mavlink_msg_shim_cmd2_decode(&msg, &packet2);
-        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-        memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd2_pack(system_id, component_id, &msg , packet1.window_time );
-	mavlink_msg_shim_cmd2_decode(&msg, &packet2);
-        MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-        memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd2_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.window_time );
-	mavlink_msg_shim_cmd2_decode(&msg, &packet2);
+	mavlink_msg_shim_params_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale , packet1.window_time );
+	mavlink_msg_shim_params_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
@@ -1600,12 +1600,12 @@ static void mavlink_test_shim_cmd2(uint8_t system_id, uint8_t component_id, mavl
         for (i=0; i<mavlink_msg_get_send_buffer_length(&msg); i++) {
         	comm_send_ch(MAVLINK_COMM_0, buffer[i]);
         }
-	mavlink_msg_shim_cmd2_decode(last_msg, &packet2);
+	mavlink_msg_shim_params_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-	mavlink_msg_shim_cmd2_send(MAVLINK_COMM_1 , packet1.window_time );
-	mavlink_msg_shim_cmd2_decode(last_msg, &packet2);
+	mavlink_msg_shim_params_send(MAVLINK_COMM_1 , packet1.before , packet1.smooth , packet1.ubverified , packet1.ubunverified , packet1.amin , packet1.pwm_accel_scale , packet1.throttle_accel_scale , packet1.window_time );
+	mavlink_msg_shim_params_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }
 
@@ -1688,8 +1688,8 @@ static void mavlink_test_ardupilotmega(uint8_t system_id, uint8_t component_id, 
 	mavlink_test_camera_status(system_id, component_id, last_msg);
 	mavlink_test_camera_feedback(system_id, component_id, last_msg);
 	mavlink_test_battery2(system_id, component_id, last_msg);
-	mavlink_test_shim_cmd1(system_id, component_id, last_msg);
-	mavlink_test_shim_cmd2(system_id, component_id, last_msg);
+	mavlink_test_shim_enable_disable(system_id, component_id, last_msg);
+	mavlink_test_shim_params(system_id, component_id, last_msg);
 	mavlink_test_shim_stats(system_id, component_id, last_msg);
 }
 
