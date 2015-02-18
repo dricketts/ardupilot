@@ -484,11 +484,18 @@
     </message>
 
     <message name="SHIM_STATS" id="232">
-      <description>Statics of the shim sent from the vehicle to the GCS</description>
+      <description>Statistics of the shim sent from the vehicle to the GCS</description>
       <field type="float" name="percent_rejected_ver">The percentage of iterations in the last window_time milliseconds that the verified shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="percent_rejected_unver">The percentage of iterations in the last window_time milliseconds that the unverified smoothing shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="avg_accel_diff_ver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
       <field type="float" name="avg_accel_diff_unver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the unverified shim.</field>
+    </message>
+
+    <message name="THROTTLE_PWM_STATS" id="233">
+      <description>Statistics on throttle and pwm</description>
+      <field type="uint32_t" name="window_time">The time window in milliseconds over which the averages in this message should be taken</field>      
+      <field type="float" name="pwm_avg">The average pwm of a motor in the last window_time milliseconds</field>
+      <field type="float" name="throttle_avg">The average throttle passed to the motor mixing code in the last window_time milliseconds</field>
     </message>
 
      </messages>
