@@ -485,6 +485,7 @@
 
     <message name="SHIM_STATS" id="232">
       <description>Statistics of the shim sent from the vehicle to the GCS</description>
+      <field type="uint64_t" name="time">The time of these statistics in milliseconds since the epoch.</field>
       <field type="float" name="percent_rejected_ver">The percentage of iterations in the last window_time milliseconds that the verified shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="percent_rejected_unver">The percentage of iterations in the last window_time milliseconds that the unverified smoothing shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="avg_accel_diff_ver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
