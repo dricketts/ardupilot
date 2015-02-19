@@ -59,7 +59,7 @@ public:
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
                   const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
-          _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(true),
+          _ub_shim(ub), _ub_smooth(ub - 200), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(false),
         _amin(500 + gravity), _pwm_accel_scale(544.8138888889), _amax((4 * _pwm_accel_scale) + gravity),
         _before(true), _smooth(true), _hover_throttle(500),
         _count(0), _rejected_ver_sum(0), _rejected_unver_sum(0), _accel_diff_ver_sum(0),
