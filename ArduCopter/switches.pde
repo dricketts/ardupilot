@@ -173,6 +173,7 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
     }
 
     switch(tmp_function) {
+
         case AUX_SWITCH_FLIP:
             // flip if switch is on, positive throttle and we're actually flying
             if(ch_flag == AUX_SWITCH_HIGH) {
@@ -463,7 +464,23 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
                 landinggear.set_cmd_mode(LandingGear_Retract);
                 break;
         }
-        break;    
+        break; 
+
+    case AUX_SWITCH_SHIM:
+#if SHIM
+        switch (ch_flag) {
+            case AUX_SWITCH_LOW:
+                motors.disable_shim();
+                break;
+            case AUX_SWITCH_MIDDLE:
+                motors.disable_shim();
+                break;
+            case AUX_SWITCH_HIGH:
+                motors.enable_shim();
+                break;
+        }
+#endif
+        break;
 
     }
 }

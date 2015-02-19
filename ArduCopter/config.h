@@ -251,7 +251,7 @@
 #endif
 
 #ifndef CH8_OPTION
- # define CH8_OPTION            AUX_SWITCH_DO_NOTHING
+ # define CH8_OPTION            AUX_SWITCH_SHIM
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

@@ -929,14 +929,15 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     {
 #if SHIM
         // decode packet
-        mavlink_shim_enable_disable_t packet;
-        mavlink_msg_shim_enable_disable_decode(msg, &packet);
-        if (packet.enable == 0) {
-            motors.disable_shim();
-        } else {
-            motors.enable_shim();
-        }
+        // mavlink_shim_enable_disable_t packet;
+        // mavlink_msg_shim_enable_disable_decode(msg, &packet);
+        // if (packet.enable == 0) {
+        //     motors.disable_shim();
+        // } else {
+        //     motors.enable_shim();
+        // }
 #endif
+        break;
     }
     case MAVLINK_MSG_ID_SHIM_PARAMS: // MAV ID: 231
     {
@@ -953,6 +954,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         motors.set_hover_throttle(packet.hover_throttle);
         motors.set_time_window(packet.window_time);
 #endif
+        break;
     }
 
     case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0
