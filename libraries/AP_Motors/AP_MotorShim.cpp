@@ -187,6 +187,8 @@ void AP_MotorShim::verified_shim2(float A) {
     }
     // \/ a! = amin
     else {
+        _rejected_ver_sum++;
+        _accel_diff_ver_sum += A - _amin;
         _a = _amin;
     }
 
@@ -199,6 +201,8 @@ void AP_MotorShim::shim_premix() {
     float A_proposal = get_acc_from_throttle();
     float A_safe = smoothing_shim(A_proposal);
     if (A_safe < A_proposal) {
+        _rejected_unver_sum++;
+        _accel_diff_unver_sum += A_proposal - A_safe;
         set_throttle_from_acc(A_safe);
     }
 
@@ -225,6 +229,8 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
     float A_proposal = get_acceleration(motor_out);
     float A_safe = smoothing_shim(A_proposal);
     if (A_safe < A_proposal) {
+        _rejected_unver_sum++;
+        _accel_diff_unver_sum += A_proposal - A_safe;
         set_motors_from_acc(A_safe, motor_out);
     }
 
@@ -270,6 +276,9 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
 // output_armed - sends control signals to the motors
 void AP_MotorShim::output_armed()
 {
+    // For statistics
+    _count++;
+    _throttle_sum += get_throttle_out();
 
     if (_shim_on && _before) {
         shim_premix();
@@ -284,6 +293,10 @@ void AP_MotorShim::output_armed()
 
     if (_shim_on && !_before) {
         shim_postmix(motor_out);
+    }
+
+    for (int8_t i=0; i<4; i++) {
+        _pwm_sum += motor_out[i];
     }
 
     // write the control signals to the motors

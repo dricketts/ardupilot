@@ -52,6 +52,18 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                  motors.get_pwm_scale(),
                                  motors.get_hover_throttle(),
                                  motors.get_time_window());
+
+    shim_stats stats = motors.get_shim_stats();
+    mavlink_msg_shim_stats_send(chan,
+                                stats.time,
+                                stats.percent_rejected_ver,
+                                stats.percent_rejected_unver,
+                                stats.avg_accel_diff_ver,
+                                stats.avg_accel_diff_unver);
+    mavlink_msg_throttle_pwm_stats_send(chan,
+                                   stats.window_time,
+                                   stats.pwm_avg,
+                                   stats.throttle_avg);
 #endif
 }
 
