@@ -20,23 +20,11 @@
 // such that the height of the system will
 // always stay below the upper bound.
 
-// Ratio between pwm of a single motor
-// (scaled to be between 0 and 1) and the thrust
-// it produces. Equal to (g/(4*hover_throttle)).
-// Taken from python simulation in
-// Tools/autotest/pysim/multicopter.py
-#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-  static const float pwm_accel_scale = 544.8138888889;
-#endif
 // Acceleration due to gravity in cm/s/s.
 // Sensors seem to use cm as length unit.
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = -980.665;
-// Maximum possible acceleration.
-static const float amax = (4 * pwm_accel_scale) + gravity;
-// Minimum acceleration for the shim
-static const float amin = 500 + gravity;
 
 /// @class      AP_MotorShim
 class AP_MotorShim : public AP_MotorsQuad {
@@ -51,20 +39,57 @@ public:
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
                   const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
-          _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(true) {
+          _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(true),
+        _amin(500 + gravity), _pwm_accel_scale(544.8138888889), _amax((4 * _pwm_accel_scale) + gravity),
+        _before(true), _smooth(true), _hover_throttle(500), _time_window(1) {
 
     };
 
     virtual void set_mid_throttle(uint16_t mid_throttle) {
         AP_Motors::set_mid_throttle(mid_throttle);
-        _throttle_to_accel = -gravity/mid_throttle;
+        set_hover_throttle(mid_throttle);
     }
+
+    void set_before_mixing(bool before) {_before = before;}
+
+    void set_smooth(bool smooth) {_smooth = smooth;}
+
+    void set_bound_ver(float bound) {_ub_shim = bound;}
+
+    void set_bound_unver(float bound) {_ub_smooth = bound;}
+
+    void set_amin(float amin) {_amin = amin;}
+
+    void set_pwm_scale(float pwm_accel_scale) {_pwm_accel_scale = pwm_accel_scale;}
+
+    void set_hover_throttle(uint16_t hover_throttle) {
+        _throttle_to_accel = -gravity/hover_throttle;
+        _hover_throttle = hover_throttle;
+    }
+
+    void set_time_window(uint32_t time_window) {_time_window = time_window;}
 
     void enable_shim() {_shim_on = true;}
 
     void disable_shim() {_shim_on = false;}
 
     bool shim_on() {return _shim_on;}
+
+    bool shim_before() {return _before;}
+
+    bool smooth_on() {return _smooth;}
+
+    float bound_ver() {return _ub_shim;}
+
+    float bound_unver() {return _ub_smooth;}
+
+    float get_amin() {return _amin;}
+
+    float get_pwm_scale() {return _pwm_accel_scale;}
+
+    float get_hover_throttle() {return _hover_throttle;}
+
+    uint32_t get_time_window() {return _time_window;}
 
 protected:
     // output - sends commands to the motors
@@ -165,24 +190,51 @@ private:
     const float _d;
 
     // The altitude upper bound for the verified shim
-    const float _ub_shim;
+    float _ub_shim;
 
     // The altitude upper bound for the smoother
-    const float _ub_smooth;
+    float _ub_smooth;
 
     // The number of iterations that the smoothing shim
     // looks into the future when computing the largest
     // possible safe acceleration
-    const float _smooth_lookahead;
+    float _smooth_lookahead;
 
     // Ratio between the throttle and the acceleration
     // it produces. Equal to (g/hover_throttle).
     float _throttle_to_accel;
+
+    // Minimum acceleration for the shim
+    float _amin;
+
+    // Ratio between pwm of a single motor
+    // (scaled to be between 0 and 1) and the thrust
+    // it produces. Equal to (g/(4*hover_throttle)).
+    // Taken from python simulation in
+    // Tools/autotest/pysim/multicopter.py
+    float _pwm_accel_scale;
+    
+    // Maximum possible acceleration.
+    float _amax;
 
     // the object that gives sensor readings
     const AP_InertialNav_NavEKF& _inertial_nav;
 
     // flag that is true iff the shim is one
     bool _shim_on;
+
+    // flag that is true iff the shim should be run before
+    // the motor mixing code
+    bool _before;
+
+    // flag that is true iff the unverified smoothing
+    // shim should be run
+    bool _smooth;
+
+    // the throttle passed to motor mixing code at hover
+    uint16_t _hover_throttle;
+
+    // time window for computing averages, in seconds
+    uint32_t _time_window;
 
 };

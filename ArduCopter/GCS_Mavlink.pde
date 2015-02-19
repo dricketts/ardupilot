@@ -43,6 +43,15 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 {
 #if SHIM
     mavlink_msg_shim_enable_disable_send(chan, motors.shim_on());
+    mavlink_msg_shim_params_send(chan,
+                                 motors.shim_before(),
+                                 motors.smooth_on(),
+                                 motors.bound_ver(),
+                                 motors.bound_unver(),
+                                 motors.get_amin(),
+                                 motors.get_pwm_scale(),
+                                 motors.get_hover_throttle(),
+                                 motors.get_time_window());
 #endif
 }
 
@@ -927,6 +936,22 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         } else {
             motors.enable_shim();
         }
+#endif
+    }
+    case MAVLINK_MSG_ID_SHIM_PARAMS: // MAV ID: 231
+    {
+#if SHIM
+        // decode packet
+        mavlink_shim_params_t packet;
+        mavlink_msg_shim_params_decode(msg, &packet);
+        motors.set_before_mixing(packet.before != 0);
+        motors.set_smooth(packet.smooth != 0);
+        motors.set_bound_ver(packet.ubverified);
+        motors.set_bound_unver(packet.ubunverified);
+        motors.set_amin(packet.amin);
+        motors.set_pwm_scale(packet.pwm_accel_scale);
+        motors.set_hover_throttle(packet.hover_throttle);
+        motors.set_time_window(packet.window_time);
 #endif
     }
 

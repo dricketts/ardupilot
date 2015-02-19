@@ -12,7 +12,7 @@ static float tdist(float V, float a, float t) {
 
 // distance required to stop when traveling
 // at positive velocity V
-static float sdist(float V) {
+static float sdist(float V, float amin) {
     return -(V*V)/(2*amin);
 }
 
@@ -24,7 +24,7 @@ float AP_MotorShim::bound_expr(float H, float V, float t1,
                                float t2, float a1, float a2) {
     return H + tdist(V, a1, t1)
         + tdist(V + (a1*_d), a2, t2)
-        + sdist(V + (a1*_d) + (a2*t2));
+        + sdist(V + (a1*_d) + (a2*t2), _amin);
 }
 
 // Returns true iff bound_expr on the same arguments is at most
@@ -38,8 +38,8 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
 // taken from OneDimAccShim1.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe1(float A, float H, float V) {
-    return bound_is_safe(H, V, _d, _d, amax, amax) &&
-        bound_is_safe(H, V, 0, _d, amax, amax);
+    return bound_is_safe(H, V, _d, _d, _amax, _amax) &&
+        bound_is_safe(H, V, 0, _d, _amax, _amax);
 }
 
 // safety check on the proposed acceleration
@@ -62,8 +62,8 @@ bool AP_MotorShim::is_safe2(float A, float H, float V) {
 // non-negativity in the argument we pass.
 float AP_MotorShim::sqrt_expr(float H, float V, float t1,
                               float t2, float a1) {
-    return amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
-                 (amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
+    return _amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
+                 (_amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
 
 }
 
@@ -74,7 +74,7 @@ float AP_MotorShim::safe_accel2(float H, float V, float t1,
                                 float t2, float a1) {
     if (sqrt_expr(H, V, t1, t2, a1) >= 0) {
         return (sqrt(sqrt_expr(H, V, t1, t2, a1))
-                - (2*a1*_d) + (amin*t2) - (2*V))
+                - (2*a1*_d) + (_amin*t2) - (2*V))
             /(2*t2);
     } else {
         return 0;
@@ -118,7 +118,7 @@ float AP_MotorShim::get_acc_from_throttle() {
 float AP_MotorShim::get_acceleration(int16_t motor_out[]) {
     float accel = 0;
     for (int8_t i=0; i<4; i++) {
-        accel += ((motor_out[i] - 1000)/1000.0)*pwm_accel_scale;
+        accel += ((motor_out[i] - 1000)/1000.0)*_pwm_accel_scale;
     }
     return accel + gravity;
 }
@@ -187,7 +187,7 @@ void AP_MotorShim::verified_shim2(float A) {
     }
     // \/ a! = amin
     else {
-        _a = amin;
+        _a = _amin;
     }
 
 }
@@ -271,7 +271,7 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
 void AP_MotorShim::output_armed()
 {
 
-    if (_shim_on) {
+    if (_shim_on && _before) {
         shim_premix();
     }
     
@@ -282,7 +282,7 @@ void AP_MotorShim::output_armed()
     // from the pilot/other controllers
     compute_outputs_armed(motor_out);
 
-    if (_shim_on) {
+    if (_shim_on && !_before) {
         shim_postmix(motor_out);
     }
 
