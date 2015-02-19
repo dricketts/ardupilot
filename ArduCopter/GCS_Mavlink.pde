@@ -51,11 +51,10 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                  motors.get_amin(),
                                  motors.get_pwm_scale(),
                                  motors.get_hover_throttle(),
-                                 motors.get_time_window());
+                                 motors.get_smooth_lookahead());
 
     shim_stats stats = motors.get_shim_stats();
     mavlink_msg_shim_stats_send(chan,
-                                stats.time,
                                 stats.percent_rejected_ver,
                                 stats.percent_rejected_unver,
                                 stats.avg_accel_diff_ver,
@@ -964,7 +963,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         motors.set_amin(packet.amin);
         motors.set_pwm_scale(packet.pwm_accel_scale);
         motors.set_hover_throttle(packet.hover_throttle);
-        motors.set_time_window(packet.window_time);
+        motors.set_smooth_lookahead(packet.smooth_lookahead);
 #endif
         break;
     }

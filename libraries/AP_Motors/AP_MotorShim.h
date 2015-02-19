@@ -3,7 +3,6 @@
 /// @file	AP_MotorShim.h
 /// @brief	Motor shim class for Quadcopters
 
-#include <time.h>
 #include <AP_Common.h>
 #include <AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -38,7 +37,6 @@ static const float gravity = -980.665;
 // we'll also reset everything to zero
 // when the stats are requested
 struct shim_stats {
-    uint64_t time;
     float percent_rejected_ver;
     float percent_rejected_unver;
     float avg_accel_diff_ver;
@@ -63,7 +61,7 @@ public:
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
           _ub_shim(ub), _ub_smooth(ub - 1000), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(true),
         _amin(500 + gravity), _pwm_accel_scale(544.8138888889), _amax((4 * _pwm_accel_scale) + gravity),
-        _before(true), _smooth(true), _hover_throttle(500), _time_window(1),
+        _before(true), _smooth(true), _hover_throttle(500),
         _count(0), _rejected_ver_sum(0), _rejected_unver_sum(0), _accel_diff_ver_sum(0),
         _accel_diff_unver_sum(0), _pwm_sum(0), _throttle_sum(0)
     {
@@ -92,7 +90,7 @@ public:
         _hover_throttle = hover_throttle;
     }
 
-    void set_time_window(uint32_t time_window) {_time_window = time_window;}
+    void set_smooth_lookahead(uint16_t smooth_lookahead) {_smooth_lookahead = smooth_lookahead;}
 
     void enable_shim() {_shim_on = true;}
 
@@ -114,13 +112,12 @@ public:
 
     float get_hover_throttle() {return _hover_throttle;}
 
-    uint32_t get_time_window() {return _time_window;}
+    uint16_t get_smooth_lookahead() {return _smooth_lookahead;}
 
     shim_stats get_shim_stats() {
         shim_stats stats;
         if (_count > 0) {
             float fcount = _count;
-            stats.time = time(NULL);
             stats.percent_rejected_ver = _rejected_ver_sum/fcount;
             stats.percent_rejected_unver = _rejected_unver_sum/fcount;
             stats.avg_accel_diff_ver = _accel_diff_ver_sum/fcount;
@@ -281,9 +278,6 @@ private:
 
     // the throttle passed to motor mixing code at hover
     uint16_t _hover_throttle;
-
-    // time window for computing averages, in seconds
-    uint32_t _time_window;
 
     // Variable used to compute averages
     // for statistics. The count is the number
