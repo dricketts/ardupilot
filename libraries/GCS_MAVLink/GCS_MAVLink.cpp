@@ -38,7 +38,12 @@ AP_HAL::BetterStream	*mavlink_comm_1_port;
 AP_HAL::BetterStream	*mavlink_comm_2_port;
 #endif
 
-mavlink_system_t mavlink_system = {7,1,0,0};
+// This was the old line. This compiled with
+// 3.2, but not when I use the most recent version
+// of mavlink to generate the mavlink files. The
+// next line is what they have in more recent releases.
+//mavlink_system_t mavlink_system = {7,1,0,0};
+mavlink_system_t mavlink_system = {7,1};
 
 // mask of serial ports disabled to allow for SERIAL_CONTROL
 static uint8_t mavlink_locked_mask;

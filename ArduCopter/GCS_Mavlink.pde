@@ -114,6 +114,33 @@ static NOINLINE void send_heartbeat(mavlink_channel_t chan)
         system_status);
 }
 
+static NOINLINE void send_shim_status(mavlink_channel_t chan)
+{
+#if SHIM
+    mavlink_msg_shim_enable_disable_send(chan, motors.shim_on());
+    mavlink_msg_shim_params_send(chan,
+                                 motors.shim_before(),
+                                 motors.smooth_on(),
+                                 motors.bound_ver(),
+                                 motors.bound_unver(),
+                                 motors.get_amin(),
+                                 motors.get_pwm_scale(),
+                                 motors.get_hover_throttle(),
+                                 motors.get_smooth_lookahead());
+
+    shim_stats stats = motors.get_shim_stats();
+    mavlink_msg_shim_stats_send(chan,
+                                stats.percent_rejected_ver,
+                                stats.percent_rejected_unver,
+                                stats.avg_accel_diff_ver,
+                                stats.avg_accel_diff_unver);
+    mavlink_msg_throttle_pwm_stats_send(chan,
+                                   stats.window_time,
+                                   stats.pwm_avg,
+                                   stats.throttle_avg);
+#endif
+}
+
 static NOINLINE void send_attitude(mavlink_channel_t chan)
 {
     const Vector3f &gyro = ins.get_gyro();
@@ -624,6 +651,10 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         // unused
         break;
 
+    case MSG_SHIM_STATUS:
+        send_shim_status(chan);
+        break;
+
     case MSG_RETRY_DEFERRED:
         break; // just here to prevent a warning
     }
@@ -823,6 +854,7 @@ GCS_MAVLINK::data_stream_send(void)
     if (stream_trigger(STREAM_EXTRA1)) {
         send_message(MSG_ATTITUDE);
         send_message(MSG_SIMSTATE);
+        send_message(MSG_SHIM_STATUS);
     }
 
     if (gcs_out_of_time) return;
@@ -868,6 +900,38 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     uint8_t result = MAV_RESULT_FAILED;         // assume failure.  Each messages id is responsible for return ACK or NAK if required
 
     switch (msg->msgid) {
+
+    case MAVLINK_MSG_ID_SHIM_ENABLE_DISABLE: // MAV ID: 230
+    {
+#if SHIM
+        // decode packet
+        // mavlink_shim_enable_disable_t packet;
+        // mavlink_msg_shim_enable_disable_decode(msg, &packet);
+        // if (packet.enable == 0) {
+        //     motors.disable_shim();
+        // } else {
+        //     motors.enable_shim();
+        // }
+#endif
+        break;
+    }
+    case MAVLINK_MSG_ID_SHIM_PARAMS: // MAV ID: 231
+    {
+#if SHIM
+        // decode packet
+        mavlink_shim_params_t packet;
+        mavlink_msg_shim_params_decode(msg, &packet);
+        motors.set_before_mixing(packet.before != 0);
+        motors.set_smooth(packet.smooth != 0);
+        motors.set_bound_ver(packet.ubverified);
+        motors.set_bound_unver(packet.ubunverified);
+        motors.set_amin(packet.amin);
+        motors.set_pwm_scale(packet.pwm_accel_scale);
+        motors.set_hover_throttle(packet.hover_throttle);
+        motors.set_smooth_lookahead(packet.smooth_lookahead);
+#endif
+        break;
+    }
 
     case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0
     {

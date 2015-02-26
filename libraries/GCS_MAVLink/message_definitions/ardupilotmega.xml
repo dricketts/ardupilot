@@ -444,5 +444,37 @@
       <field type="int16_t" name="current_battery">Battery current, in 10*milliamperes (1 = 10 milliampere), -1: autopilot does not measure the current</field>
     </message>
 
+    <message name="SHIM_ENABLE_DISABLE" id="230">
+      <description>Command to set whether the shim is enabled or not</description>
+      <field type="uint8_t" name="enable">1 to enable, 0 to disable the shim</field>
+    </message>
+
+    <message name="SHIM_PARAMS" id="231">
+      <description>Command to set various options of the shim</description>
+      <field type="uint8_t" name="before">1 to run the shim before the motor mixing code, 0 for after</field>
+      <field type="uint8_t" name="smooth">1 to run the unverified smoothing shim, 0 to not run the unverified smoothing shim</field>
+      <field type="float" name="ubverified">the height upper bound in cm of the verified shim</field>
+      <field type="float" name="ubunverified">the height upper bound in cm of the unverified smoothing shim</field>
+      <field type="float" name="amin">The acceleration in cm/s/s issued when the verified shim is engaged. Should be at least the acceleration due to gravity.</field>
+      <field type="float" name="pwm_accel_scale">The ratio between the signal sent to a motor and the acceleration in cm/s/s produced by that motor</field>
+      <field type="uint16_t" name="hover_throttle">The throttle provided to the motor mixing code required for hover</field>
+      <field type="uint16_t" name="smooth_lookahead">The number of iterations in the future that the smoothing shim looks.</field>
+    </message>
+
+    <message name="SHIM_STATS" id="232">
+      <description>Statistics of the shim sent from the vehicle to the GCS</description>
+      <field type="float" name="percent_rejected_ver">The percentage of iterations in the last window_time milliseconds that the verified shim rejected the proposed acceleration and issued its own.</field>
+      <field type="float" name="percent_rejected_unver">The percentage of iterations in the last window_time milliseconds that the unverified smoothing shim rejected the proposed acceleration and issued its own.</field>
+      <field type="float" name="avg_accel_diff_ver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
+      <field type="float" name="avg_accel_diff_unver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the unverified shim.</field>
+    </message>
+
+    <message name="THROTTLE_PWM_STATS" id="233">
+      <description>Statistics on throttle and pwm</description>
+      <field type="uint32_t" name="window_time">The time window in milliseconds over which the averages in this message should be taken</field>      
+      <field type="float" name="pwm_avg">The average pwm of a motor in the last window_time milliseconds</field>
+      <field type="float" name="throttle_avg">The average throttle passed to the motor mixing code in the last window_time milliseconds</field>
+    </message>
+
      </messages>
 </mavlink>

@@ -446,7 +446,25 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
     case AUX_SWITCH_RELAY:
         ServoRelayEvents.do_set_relay(0, ch_flag == AUX_SWITCH_HIGH);
         break;
+
+    case AUX_SWITCH_SHIM:
+#if SHIM
+        switch (ch_flag) {
+            case AUX_SWITCH_LOW:
+                motors.disable_shim();
+                break;
+            case AUX_SWITCH_MIDDLE:
+                motors.disable_shim();
+                break;
+            case AUX_SWITCH_HIGH:
+                motors.enable_shim();
+                break;
+        }
+#endif
+        break;
+
     }
+
 }
 
 // save_trim - adds roll and pitch trims from the radio to ahrs

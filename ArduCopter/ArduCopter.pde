@@ -431,42 +431,6 @@ static struct {
     uint32_t last_heartbeat_ms;             // the time when the last HEARTBEAT message arrived from a GCS - used for triggering gcs failsafe
 } failsafe;
 
-////////////////////////////////////////////////////////////////////////////////
-// Motor Output
-////////////////////////////////////////////////////////////////////////////////
-#if FRAME_CONFIG == QUAD_FRAME
- #define MOTOR_CLASS AP_MotorsQuad
-#elif FRAME_CONFIG == TRI_FRAME
- #define MOTOR_CLASS AP_MotorsTri
-#elif FRAME_CONFIG == HEXA_FRAME
- #define MOTOR_CLASS AP_MotorsHexa
-#elif FRAME_CONFIG == Y6_FRAME
- #define MOTOR_CLASS AP_MotorsY6
-#elif FRAME_CONFIG == OCTA_FRAME
- #define MOTOR_CLASS AP_MotorsOcta
-#elif FRAME_CONFIG == OCTA_QUAD_FRAME
- #define MOTOR_CLASS AP_MotorsOctaQuad
-#elif FRAME_CONFIG == HELI_FRAME
- #define MOTOR_CLASS AP_MotorsHeli
-#elif FRAME_CONFIG == SINGLE_FRAME
- #define MOTOR_CLASS AP_MotorsSingle
-#elif FRAME_CONFIG == COAX_FRAME
- #define MOTOR_CLASS AP_MotorsCoax
-#else
- #error Unrecognised frame type
-#endif
-
-#if FRAME_CONFIG == HELI_FRAME  // helicopter constructor requires more arguments
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.rc_7, g.rc_8, g.heli_servo_1, g.heli_servo_2, g.heli_servo_3, g.heli_servo_4);
-#elif FRAME_CONFIG == TRI_FRAME  // tri constructor requires additional rc_7 argument to allow tail servo reversing
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.rc_7);
-#elif FRAME_CONFIG == SINGLE_FRAME  // single constructor requires extra servos for flaps
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.single_servo_2, g.single_servo_3, g.single_servo_4);
-#elif FRAME_CONFIG == COAX_FRAME  // single constructor requires extra servos for flaps
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.single_servo_2);
-#else
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4);
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // PIDs
@@ -646,6 +610,49 @@ static float G_Dt = 0.02;
 static AP_InertialNav_NavEKF inertial_nav(ahrs, barometer, gps_glitch, baro_glitch);
 #else
 static AP_InertialNav inertial_nav(ahrs, barometer, gps_glitch, baro_glitch);
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// Motor Output
+////////////////////////////////////////////////////////////////////////////////
+#if FRAME_CONFIG == QUAD_FRAME
+ #if SHIM
+  #define MOTOR_CLASS AP_MotorShim
+ #else
+  #define MOTOR_CLASS AP_MotorsQuad
+ #endif
+#elif FRAME_CONFIG == TRI_FRAME
+ #define MOTOR_CLASS AP_MotorsTri
+#elif FRAME_CONFIG == HEXA_FRAME
+ #define MOTOR_CLASS AP_MotorsHexa
+#elif FRAME_CONFIG == Y6_FRAME
+ #define MOTOR_CLASS AP_MotorsY6
+#elif FRAME_CONFIG == OCTA_FRAME
+ #define MOTOR_CLASS AP_MotorsOcta
+#elif FRAME_CONFIG == OCTA_QUAD_FRAME
+ #define MOTOR_CLASS AP_MotorsOctaQuad
+#elif FRAME_CONFIG == HELI_FRAME
+ #define MOTOR_CLASS AP_MotorsHeli
+#elif FRAME_CONFIG == SINGLE_FRAME
+ #define MOTOR_CLASS AP_MotorsSingle
+#elif FRAME_CONFIG == COAX_FRAME
+ #define MOTOR_CLASS AP_MotorsCoax
+#else
+ #error Unrecognised frame type
+#endif
+
+#if FRAME_CONFIG == HELI_FRAME  // helicopter constructor requires more arguments
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.rc_7, g.rc_8, g.heli_servo_1, g.heli_servo_2, g.heli_servo_3, g.heli_servo_4);
+#elif FRAME_CONFIG == TRI_FRAME  // tri constructor requires additional rc_7 argument to allow tail servo reversing
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.rc_7);
+#elif FRAME_CONFIG == SINGLE_FRAME  // single constructor requires extra servos for flaps
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.single_servo_2, g.single_servo_3, g.single_servo_4);
+#elif FRAME_CONFIG == COAX_FRAME  // single constructor requires extra servos for flaps
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.single_servo_2);
+#elif SHIM // shim requires sensor information, an upper bound, and the delay
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, inertial_nav, SHIM_UB, SHIM_SMOOTH_LOOKAHEAD, SHIM_DELAY, g.throttle_mid);
+#else
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
