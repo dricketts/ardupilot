@@ -134,11 +134,15 @@ void AP_MotorShim::set_throttle_from_acc(float A) {
 // of motor_out the same. In other words, we linearly scale the motors.
 void AP_MotorShim::set_motors_from_acc(float A_new, int16_t motor_out[]) {
     float A_old = get_acceleration(motor_out);
-    float ratio = (A_new-gravity)/(A_old-gravity);
-    for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
-        if (motor_enabled[i]) {
-            motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
+    if (A_old-gravity > 0) {
+        float ratio = (A_new-gravity)/(A_old-gravity);
+        for (int8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            if (motor_enabled[i]) {
+                motor_out[i] = (ratio*(motor_out[i]-1000.0)) + 1000;
+            }
         }
+    } else {
+        _set_motors_from_acc_failed = true;
     }
 }
 
@@ -215,7 +219,16 @@ void AP_MotorShim::shim_premix() {
     float A = get_acc_from_throttle();
     verified_shim2(A);
     if (_a < A) {
+        if (_proposed) {
+            _change_count++;
+        }
+        _proposed = false;
         set_throttle_from_acc(_a);
+    } else {
+        if (!_proposed) {
+            _change_count++;
+        }
+        _proposed = true;
     }
 
     ///////////////////////////////////////////////////
@@ -245,7 +258,16 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
     float A = get_acceleration(motor_out);
     verified_shim2(A);
     if (_a < A) {
+        if (_proposed) {
+            _change_count++;
+        }
+        _proposed = false;
         set_motors_from_acc(_a, motor_out);
+    } else {
+        if (!_proposed) {
+            _change_count++;
+        }
+        _proposed = true;
     }
 
     ///////////////////////////////////////////////////

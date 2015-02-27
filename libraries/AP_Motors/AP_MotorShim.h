@@ -44,6 +44,10 @@ struct shim_stats {
     uint32_t window_time;
     float pwm_avg;
     float throttle_avg;
+    // percent of time switching from proposed to unproposed
+    // in verified shim
+    float change_avg;
+    bool set_motors_from_acc_failed;
 };
 
 /// @class      AP_MotorShim
@@ -63,7 +67,8 @@ public:
         _amin(500 + gravity), _pwm_accel_scale(544.8138888889), _amax((4 * _pwm_accel_scale) + gravity),
         _before(true), _smooth(true), _hover_throttle(500),
         _count(0), _rejected_ver_sum(0), _rejected_unver_sum(0), _accel_diff_ver_sum(0),
-        _accel_diff_unver_sum(0), _pwm_sum(0), _throttle_sum(0)
+        _accel_diff_unver_sum(0), _pwm_sum(0), _throttle_sum(0), _change_count(0), _proposed(false),
+        _set_motors_from_acc_failed(false)
     {
 
     };
@@ -125,6 +130,8 @@ public:
             stats.window_time = _count;
             stats.pwm_avg = _pwm_sum/fcount;
             stats.throttle_avg = _throttle_sum/fcount;
+            stats.change_avg = _change_count/fcount;
+            stats.set_motors_from_acc_failed = _set_motors_from_acc_failed;
             _count = 0;
             _rejected_ver_sum = 0;
             _rejected_unver_sum = 0;
@@ -132,6 +139,8 @@ public:
             _accel_diff_unver_sum = 0;
             _pwm_sum = 0;
             _throttle_sum = 0;
+            _change_count = 0;
+            _set_motors_from_acc_failed = false;
         }
         return stats;
     }
@@ -289,5 +298,15 @@ private:
     float _accel_diff_unver_sum;
     float _pwm_sum;
     float _throttle_sum;
+    float _change_count;
+
+    // true iff the previous iteration issued
+    // the proposed acceleration
+    float _proposed;
+
+    // flag that should be set to true
+    // whenever set_motors_from_acc fails
+    // to reset motor accelerations
+    bool _set_motors_from_acc_failed;
 
 };

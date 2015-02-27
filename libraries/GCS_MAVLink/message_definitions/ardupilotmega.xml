@@ -467,6 +467,8 @@
       <field type="float" name="percent_rejected_unver">The percentage of iterations in the last window_time milliseconds that the unverified smoothing shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="avg_accel_diff_ver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
       <field type="float" name="avg_accel_diff_unver">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the unverified shim.</field>
+      <field type="float" name="change_avg">The average number of times that the smoothing shim switched from the proposed acceleration to it's safe acceleration.</field>
+      <field type="uint8_t" name="set_motors_from_acc_failed">1 if set_motors_from_acc failed since the last time this message was sent. 0 otherwise.</field>
     </message>
 
     <message name="THROTTLE_PWM_STATS" id="233">
