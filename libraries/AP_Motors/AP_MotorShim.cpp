@@ -23,8 +23,8 @@ static float sdist(float V, float amin) {
 float AP_MotorShim::bound_expr(float H, float V, float t1,
                                float t2, float a1, float a2) {
     return H + tdist(V, a1, t1)
-        + tdist(V + (a1*_d), a2, t2)
-        + sdist(V + (a1*_d) + (a2*t2), _amin);
+        + tdist(V + (a1*_d_sense), a2, t2)
+        + sdist(V + (a1*_d_sense) + (a2*t2), _amin);
 }
 
 // Returns true iff bound_expr on the same arguments is at most
@@ -38,8 +38,8 @@ bool AP_MotorShim::bound_is_safe(float H, float V, float t1,
 // taken from OneDimAccShim1.v.
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe1(float A, float H, float V) {
-    return bound_is_safe(H, V, _d, _d, _amax, _amax) &&
-        bound_is_safe(H, V, 0, _d, _amax, _amax);
+    return bound_is_safe(H, V, _d_sense, _d_sense, _amax, _amax) &&
+        bound_is_safe(H, V, 0, _d_sense, _amax, _amax);
 }
 
 // safety check on the proposed acceleration
@@ -47,14 +47,14 @@ bool AP_MotorShim::is_safe1(float A, float H, float V) {
 // A - the proposed acceleration
 bool AP_MotorShim::is_safe2(float A, float H, float V) {
     return
-        (_a >= 0 && tdist(V, _a, _d) >= 0 && A >= 0 && bound_is_safe(H, V, _d, _d, _a, A)) ||
-        (_a >= 0 && tdist(V, _a, _d) < 0 && A >= 0 && bound_is_safe(H, V, 0, _d, _a, A)) ||
-        (_a < 0 && tdist(V, 0, _d) >= 0 && A >= 0 && bound_is_safe(H, V, _d, _d, 0, A)) ||
-        (_a < 0 && tdist(V, 0, _d) < 0 && A >= 0 && bound_is_safe(H, V, 0, _d, 0, A)) ||
-        (_a >= 0 && tdist(V, _a, _d) >= 0 && A < 0 && bound_is_safe(H, V, _d, _d, _a, 0)) ||
-        (_a >= 0 && tdist(V, _a, _d) < 0 && A < 0 && bound_is_safe(H, V, 0, _d, _a, 0)) ||
-        (_a < 0 && tdist(V, 0, _d) >= 0 && A < 0 && bound_is_safe(H, V, _d, _d, 0, 0)) ||
-        (_a < 0 && tdist(V, 0, _d) < 0 && A < 0 && bound_is_safe(H, V, 0, _d, 0, 0));
+        (_a >= 0 && tdist(V, _a, _d_sense) >= 0 && A >= 0 && bound_is_safe(H, V, _d_sense, _d_sense, _a, A)) ||
+        (_a >= 0 && tdist(V, _a, _d_sense) < 0 && A >= 0 && bound_is_safe(H, V, 0, _d_sense, _a, A)) ||
+        (_a < 0 && tdist(V, 0, _d_sense) >= 0 && A >= 0 && bound_is_safe(H, V, _d_sense, _d_sense, 0, A)) ||
+        (_a < 0 && tdist(V, 0, _d_sense) < 0 && A >= 0 && bound_is_safe(H, V, 0, _d_sense, 0, A)) ||
+        (_a >= 0 && tdist(V, _a, _d_sense) >= 0 && A < 0 && bound_is_safe(H, V, _d_sense, _d_sense, _a, 0)) ||
+        (_a >= 0 && tdist(V, _a, _d_sense) < 0 && A < 0 && bound_is_safe(H, V, 0, _d_sense, _a, 0)) ||
+        (_a < 0 && tdist(V, 0, _d_sense) >= 0 && A < 0 && bound_is_safe(H, V, _d_sense, _d_sense, 0, 0)) ||
+        (_a < 0 && tdist(V, 0, _d_sense) < 0 && A < 0 && bound_is_safe(H, V, 0, _d_sense, 0, 0));
 }
 
 // The expression appearing in the square root of safe_accel2.
@@ -62,7 +62,7 @@ bool AP_MotorShim::is_safe2(float A, float H, float V) {
 // non-negativity in the argument we pass.
 float AP_MotorShim::sqrt_expr(float H, float V, float t1,
                               float t2, float a1) {
-    return _amin*((4*a1*_d*t2) + (4*a1*t1*t1) + (8*H) +
+    return _amin*((4*a1*_d_sense*t2) + (4*a1*t1*t1) + (8*H) +
                  (_amin*t2*t2) + (8*t1*V) + (4*t2*V) - (8*_ub_smooth));
 
 }
@@ -74,7 +74,7 @@ float AP_MotorShim::safe_accel2(float H, float V, float t1,
                                 float t2, float a1) {
     if (sqrt_expr(H, V, t1, t2, a1) >= 0) {
         return (sqrt(sqrt_expr(H, V, t1, t2, a1))
-                - (2*a1*_d) + (_amin*t2) - (2*V))
+                - (2*a1*_d_sense) + (_amin*t2) - (2*V))
             /(2*t2);
     } else {
         return 0;
@@ -87,14 +87,14 @@ float AP_MotorShim::safe_accel2(float H, float V, float t1,
 // shim rather than just for the next iteration.
 // Returns 0 if no such value is found.
 float AP_MotorShim::compute_safe2(float H, float V) {
-    float lookahead = _d*_smooth_lookahead;
-    if (_a >= 0 && tdist(V, _a, _d) >= 0) {
-        return safe_accel2(H, V, _d, lookahead, _a);
-    } else if (_a >= 0 && tdist(V, _a, _d) < 0) {
+    float lookahead = _d_sense*_smooth_lookahead;
+    if (_a >= 0 && tdist(V, _a, _d_sense) >= 0) {
+        return safe_accel2(H, V, _d_sense, lookahead, _a);
+    } else if (_a >= 0 && tdist(V, _a, _d_sense) < 0) {
         return safe_accel2(H, V, 0, lookahead, _a);
-    } else if (_a < 0 && tdist(V, 0, _d) >= 0) {
-        return safe_accel2(H, V, _d, lookahead, 0);
-    } else if (_a < 0 && tdist(V, 0, _d) < 0) {
+    } else if (_a < 0 && tdist(V, 0, _d_sense) >= 0) {
+        return safe_accel2(H, V, _d_sense, lookahead, 0);
+    } else if (_a < 0 && tdist(V, 0, _d_sense) < 0) {
         return safe_accel2(H, V, 0, lookahead, 0);
     }
 
@@ -183,8 +183,8 @@ float AP_MotorShim::vel_smoothing_shim(float A_proposal) {
     float V = get_vertical_vel();
         
     // Check for divide by zero, just in case
-    if (_d > 0) {
-        return (_ubV_shim - V)/(_d*_smooth_lookahead);
+    if (_d_sense > 0) {
+        return (_ubV_smooth - V)/(_d_ctrl*_smooth_lookahead);
     }
 
     return 0;
@@ -220,7 +220,7 @@ void AP_MotorShim::verified_shim2(float A) {
 void AP_MotorShim::verified_vel_shim(float A) {
     float V = get_vertical_vel();
 
-    if (A*_d + V <= _ubV_shim) {
+    if (A*_d_ctrl + V <= _ubV_shim) {
         _a = A;
     }
     else {

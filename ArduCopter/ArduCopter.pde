@@ -650,7 +650,8 @@ static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.si
 #elif FRAME_CONFIG == COAX_FRAME  // single constructor requires extra servos for flaps
 static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, g.single_servo_1, g.single_servo_2);
 #elif SHIM // shim requires sensor information, an upper bound, and the delay
-static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, inertial_nav, SHIM_UB, SHIM_SMOOTH_LOOKAHEAD, SHIM_DELAY, g.throttle_mid);
+static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4, inertial_nav, SHIM_UB, SHIM_SMOOTH_LOOKAHEAD,
+                          SHIM_DELAY, MAIN_LOOP_SECONDS, g.throttle_mid);
 #else
 static MOTOR_CLASS motors(g.rc_1, g.rc_2, g.rc_3, g.rc_4);
 #endif
