@@ -63,9 +63,10 @@ public:
                   const AP_InertialNav_NavEKF& nav, const float ub, const float smooth_lookahead,
                   const float d, const int16_t mid_throttle, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT)
         : AP_MotorsQuad(rc_roll, rc_pitch, rc_throttle, rc_yaw, speed_hz), _inertial_nav(nav),
-          _ub_shim(ub), _ub_smooth(ub - 200), _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(false),
+          _ub_shim(ub), _ub_smooth(ub - 200), _ubV_shim(100), _ubV_smooth(100),
+          _smooth_lookahead(smooth_lookahead), _d(d), _a(0), _shim_on(false),
         _amin(500 + gravity), _pwm_accel_scale(544.8138888889), _amax((4 * _pwm_accel_scale) + gravity),
-        _before(true), _smooth(true), _hover_throttle(500),
+        _before(true), _smooth(true), _z_velocity_shim_on(false), _altitude_shim_on(false), _hover_throttle(500),
         _count(0), _rejected_ver_sum(0), _rejected_unver_sum(0), _accel_diff_ver_sum(0),
         _accel_diff_unver_sum(0), _pwm_sum(0), _throttle_sum(0), _change_count(0), _proposed(false),
         _set_motors_from_acc_failed(false)
@@ -82,9 +83,17 @@ public:
 
     void set_smooth(bool smooth) {_smooth = smooth;}
 
+    void set_z_velocity_shim_on(bool on) {_z_velocity_shim_on = on;}
+
+    void set_altitude_shim_on(bool on) {_altitude_shim_on = on;}
+
     void set_bound_ver(float bound) {_ub_shim = bound;}
 
     void set_bound_unver(float bound) {_ub_smooth = bound;}
+
+    void set_vel_bound_ver(float bound) {_ubV_shim = bound;}
+
+    void set_vel_bound_unver(float bound) {_ubV_smooth = bound;}
 
     void set_amin(float amin) {_amin = amin;}
 
@@ -107,9 +116,17 @@ public:
 
     bool smooth_on() {return _smooth;}
 
+    bool velocity_shim_on() {return _z_velocity_shim_on;}
+
+    bool altitude_shim_on() {return _altitude_shim_on;}
+
     float bound_ver() {return _ub_shim;}
 
     float bound_unver() {return _ub_smooth;}
+
+    float vel_bound_ver() {return _ubV_shim;}
+
+    float vel_bound_unver() {return _ubV_smooth;}
 
     float get_amin() {return _amin;}
 
@@ -186,12 +203,19 @@ private:
     // Returns 0 if no such value is found.
     float compute_safe2(float H, float V);
 
-    // This shim is used to try to smooth the motion of the vehicle,
+    // This height shim is used to try to smooth the motion of the vehicle,
     // rather than engaging the harsh deceleration of the verified
     // shim. The shim compute the maximum acceleration that will be
     // safe (won't engage the breaking safety mode of the verified
     // shim) for the next _smooth_lookahead iterations.
     float smoothing_shim(float A_proposal);
+
+    // This velocity shim is used to try to smooth the motion of the vehicle,
+    // rather than engaging the harsh deceleration of the verified
+    // shim. The shim compute the maximum acceleration that will be
+    // safe (won't engage the breaking safety mode of the verified
+    // shim) for the next _smooth_lookahead iterations.
+    float vel_smoothing_shim(float A_proposal);
 
     // converts the motor signals to acceleration
     float get_acc_from_throttle();
@@ -222,14 +246,27 @@ private:
     // This sets the resulting safe acceleration in _a.
     void verified_shim2(float A);
 
-    // The version of the shim run before the motor
+    // The shim implementation from OneDimVelShim.v.
+    // This sets the resulting safe acceleration in _a.
+    void verified_vel_shim2(float A);
+
+    // The version of the height shim run before the motor
     // mixing code. This operates on throttles.
     void shim_premix();
 
-    // The version of the shim run after the motor
+    // The version of the height shim run after the motor
     // mixing code. This operates on values sent to the
     // motors.
     void shim_postmix(int16_t motor_out[]);
+
+    // The version of the z velocity shim run before the motor
+    // mixing code. This operates on throttles.
+    void vel_shim_premix();
+
+    // The version of the z velocity shim run after the motor
+    // mixing code. This operates on values sent to the
+    // motors.
+    void vel_shim_postmix(int16_t motor_out[]);
 
     // the previous acceleration
     float _a;
@@ -243,11 +280,17 @@ private:
     // in ArduCopter.
     const float _d;
 
-    // The altitude upper bound for the verified shim
+    // The altitude upper bound in cm for the verified shim
     float _ub_shim;
 
-    // The altitude upper bound for the smoother
+    // The altitude upper bound in cm for the smoother
     float _ub_smooth;
+
+    // The z velocity upper bound in cm/s for the verified shim
+    float _ubV_shim;
+
+    // The z velocity upper bound in cm/s for the smoother
+    float _ubV_smooth;
 
     // The number of iterations that the smoothing shim
     // looks into the future when computing the largest
@@ -284,6 +327,12 @@ private:
     // flag that is true iff the unverified smoothing
     // shim should be run
     bool _smooth;
+
+    // true iff the Z velocity shim should be run
+    bool _z_velocity_shim_on;
+
+    // true iff the altitude shim should be run
+    bool _altitude_shim_on;
 
     // the throttle passed to motor mixing code at hover
     uint16_t _hover_throttle;

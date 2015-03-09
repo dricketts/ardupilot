@@ -459,7 +459,10 @@
       <field type="float" name="pwm_accel_scale">The ratio between the signal sent to a motor and the acceleration in cm/s/s produced by that motor</field>
       <field type="uint16_t" name="hover_throttle">The throttle provided to the motor mixing code required for hover</field>
       <field type="uint16_t" name="smooth_lookahead">The number of iterations in the future that the smoothing shim looks.</field>
-      <field type="uint8_t" name="velocity">1 to run the velocity shim, 0 to run the height shim</field>
+      <field type="uint8_t" name="height_shim">1 to run the height shim, 0 to not run it</field>
+      <field type="uint8_t" name="vel_shim">1 to run the velocity shim, 0 to not run it</field>
+      <field type="float" name="vel_ubverified">the z velocity upper bound in cm/s of the verified shim</field>
+      <field type="float" name="vel_ubunverified">the z velocity upper bound in cm/s of the unverified smoothing shim</field>
     </message>
 
     <message name="SHIM_STATS" id="232">

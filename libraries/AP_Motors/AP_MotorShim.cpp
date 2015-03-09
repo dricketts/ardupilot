@@ -174,6 +174,23 @@ float AP_MotorShim::smoothing_shim(float A_proposal) {
     return 0;
 }
 
+// This velocity shim is used to try to smooth the motion of the vehicle,
+// rather than engaging the harsh deceleration of the verified
+// shim. The shim compute the maximum acceleration that will be
+// safe (won't engage the breaking safety mode of the verified
+// shim) for the next _smooth_lookahead iterations.
+float AP_MotorShim::vel_smoothing_shim(float A_proposal) {
+    float V = get_vertical_vel();
+        
+    // Check for divide by zero, just in case
+    if (_d > 0) {
+        return (_ubV_shim - V)/(_d*_smooth_lookahead);
+    }
+
+    return 0;
+
+}
+
 // The shim implementation from OneDimAccShim2.v.
 // This sets the resulting safe acceleration in _a.
 void AP_MotorShim::verified_shim2(float A) {
@@ -197,6 +214,21 @@ void AP_MotorShim::verified_shim2(float A) {
     }
 
 }
+
+// The shim implementation from OneDimVelShim.v.
+// This sets the resulting safe acceleration in _a.
+void AP_MotorShim::verified_vel_shim2(float A) {
+    float V = get_vertical_vel();
+
+    if (A*_d + V <= _ubV_shim) {
+        _a = A;
+    }
+    else {
+        _a = 0;
+    }
+
+}
+
 
 // The version of the shim run before the motor
 // mixing code. This operates on throttles.
@@ -275,6 +307,49 @@ void AP_MotorShim::shim_postmix(int16_t motor_out[]) {
     ///////////////////////////////////////////////////
 }
 
+// The version of the z velocity shim run before the motor
+// mixing code. This operates on throttles.
+void AP_MotorShim::vel_shim_premix() {
+    // Run the unverified smoothing shim
+    if (_smooth) {
+        float A_proposal = get_acc_from_throttle();
+        float A_safe = vel_smoothing_shim(A_proposal);
+        if (A_safe < A_proposal) {
+            set_throttle_from_acc(A_safe);
+        }
+    }
+
+    // Run the verified shim
+    float A = get_acc_from_throttle();
+    verified_vel_shim2(A);
+    if (_a < A) {
+        set_throttle_from_acc(_a);
+    }
+    
+}
+
+// The version of the z velocity shim run after the motor
+// mixing code. This operates on values sent to the
+// motors.
+void AP_MotorShim::vel_shim_postmix(int16_t motor_out[]) {
+    // Run the unverified smoothing shim
+    if (_smooth) {
+        float A_proposal = get_acceleration(motor_out);
+        float A_safe = vel_smoothing_shim(A_proposal);
+        if (A_safe < A_proposal) {
+            set_motors_from_acc(A_safe, motor_out);
+        }
+    }
+
+    // Run the verified shim
+    float A = get_acceleration(motor_out);
+    verified_vel_shim(A);
+    if (_a < A) {
+        set_motors_from_acc(_a, motor_out);
+    }
+
+}
+
 // This function is, in a loose sense, an implementation
 // of Ctrl from OneDimAccShim1.v or OneDimAccShim2.v,
 // depending on which version of is_safe you use. Let's
@@ -307,7 +382,12 @@ void AP_MotorShim::output_armed()
     _throttle_sum += get_throttle_out();
 
     if (_shim_on && _before) {
-        shim_premix();
+        if (altitude_shim_on()) {
+            shim_premix();
+        }
+        if (velocity_shim_on()) {
+            vel_shim_premix();
+        }
     }
     
     // final outputs sent to the motors
@@ -318,7 +398,13 @@ void AP_MotorShim::output_armed()
     compute_outputs_armed(motor_out);
 
     if (_shim_on && !_before) {
-        shim_postmix(motor_out);
+        if (altitude_shim_on()) {
+            shim_postmix(motor_out);
+        }
+        if (velocity_shim_on()) {
+            vel_shim_postmix();
+        }
+
     }
 
     for (int8_t i=0; i<4; i++) {

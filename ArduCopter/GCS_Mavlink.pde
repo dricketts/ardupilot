@@ -126,7 +126,11 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                  motors.get_amin(),
                                  motors.get_pwm_scale(),
                                  motors.get_hover_throttle(),
-                                 motors.get_smooth_lookahead());
+                                 motors.get_smooth_lookahead(),
+                                 motors.altitude_shim_on(),
+                                 motors.velocity_shim_on(),
+                                 motors.vel_bound_ver(),
+                                 motors.vel_bound_unver());
 
     shim_stats stats = motors.get_shim_stats();
     mavlink_msg_shim_stats_send(chan,
@@ -931,6 +935,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         motors.set_pwm_scale(packet.pwm_accel_scale);
         motors.set_hover_throttle(packet.hover_throttle);
         motors.set_smooth_lookahead(packet.smooth_lookahead);
+        motors.set_altitude_shim_on(packet.height_shim != 0);
+        motors.set_z_velocity_shim_on(packet.vel_shim != 0);
+        motors.set_vel_bound_ver(packet.vel_ubverified);
+        motors.set_vel_bound_unver(packet.vel_ubunverified);
 #endif
         break;
     }
