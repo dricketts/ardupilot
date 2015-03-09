@@ -217,7 +217,7 @@ void AP_MotorShim::verified_shim2(float A) {
 
 // The shim implementation from OneDimVelShim.v.
 // This sets the resulting safe acceleration in _a.
-void AP_MotorShim::verified_vel_shim2(float A) {
+void AP_MotorShim::verified_vel_shim(float A) {
     float V = get_vertical_vel();
 
     if (A*_d + V <= _ubV_shim) {
@@ -321,7 +321,7 @@ void AP_MotorShim::vel_shim_premix() {
 
     // Run the verified shim
     float A = get_acc_from_throttle();
-    verified_vel_shim2(A);
+    verified_vel_shim(A);
     if (_a < A) {
         set_throttle_from_acc(_a);
     }
@@ -402,7 +402,7 @@ void AP_MotorShim::output_armed()
             shim_postmix(motor_out);
         }
         if (velocity_shim_on()) {
-            vel_shim_postmix();
+            vel_shim_postmix(motor_out);
         }
 
     }

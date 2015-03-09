@@ -248,7 +248,7 @@ private:
 
     // The shim implementation from OneDimVelShim.v.
     // This sets the resulting safe acceleration in _a.
-    void verified_vel_shim2(float A);
+    void verified_vel_shim(float A);
 
     // The version of the height shim run before the motor
     // mixing code. This operates on throttles.
