@@ -1,5 +1,7 @@
 # ArduPilot Project
 
+This is a fork of ardupilot. It should be built against version 3.2 of PX4Firmware and PX4NuttX.
+
 You can find lots of development information at the [ArduPilot development site](http://dev.ardupilot.com)
 
 #### To compile APM2.x Ardupilot after version 3.1 please follow the instructions found at 
