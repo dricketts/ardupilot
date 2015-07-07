@@ -1,8 +1,14 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: t -*-
 
+#include <AP_HAL.h>
 #include "AC_AttitudeControl.h"
 #include "AC_AttitudeShim.h"
-#include <AP_HAL.h>
+
+extern const AP_HAL::HAL& hal;
+
+#define PRINTERVAL 20
+
+#define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
 
 // Attitude shim implementation
 
@@ -10,7 +16,10 @@
 // Params: stores a description of which attitude/throttle function to call out to
 // first_call: if true, call the throttle controller after making an attitude update (or vice versa)
 // used to prevent unbounded recursion wherein we update attitude and throttle repeatedly forever
-void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params& params, bool first_call) {
+void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool first_call) {
+  // for testing
+  // first_call = false;
+
   // Keep around two old sets of params:
   // One for most recently called attitude function
   static Att_shim_params last_attitude_call = {
@@ -33,6 +42,28 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params& params, bool fi
     false, // angle_boost
     false // NOT yet initialized
   };
+
+  // ensure we don't print too often
+  static int printerval = -1;
+  printerval++;
+  if (printerval == PRINTERVAL) printerval = 0;
+
+  // track stats on the last attitude/throttle calls
+  static int attitude_calls = 0;
+  static int throttle_calls = 0;
+
+  if (params.which_fn == THROTTLE_SET) {
+    iprintf("Throttle set to %d\n", params.throttle);
+    throttle_calls++;
+    iprintf("Total throttle calls: %d\n", throttle_calls);
+    iprintf("Total attitude calls: %d\n\n", attitude_calls);
+  }
+  else {
+    iprintf("(Roll, Pitch, Yaw) set to (%f, %f, %f)\n", params.roll, params.pitch, params.yaw);
+    attitude_calls++;
+    iprintf("Total throttle calls: %d\n", throttle_calls);
+    iprintf("Total attitude calls: %d\n\n", attitude_calls);
+  }
 
   // Call the function that the user wanted.
   // Then, if the function was throttle, see if the user previously called
@@ -82,9 +113,10 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params& params, bool fi
     case THROTTLE_SET:
       AC_AttitudeControl::set_throttle_out(params.throttle, params.angle_boost);
       if(last_attitude_call.initialized && first_call){
-        AC_AttitudeShim::attitude_shim_entry_point(last_throttle_call, false);
+        AC_AttitudeShim::attitude_shim_entry_point(last_attitude_call, false);
       }
       last_throttle_call = params;
+
       break;
   }
 }
