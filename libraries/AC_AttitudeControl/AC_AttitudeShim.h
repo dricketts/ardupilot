@@ -92,14 +92,14 @@ public:
     // provide 0 to cut motors
     void set_throttle_out(int16_t throttle_pwm, bool apply_angle_boost);
 
-private:
+protected:
 
   // Main entry point for the shim. All the overriden throttle and attitude functions
   // Call into this one.
   // Params stores information about the function to call, and its arguments
   // first_call stores whether we should also update the throttle if we are
   // currently updating attitude (or vice versa)
-  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
+  virtual void attitude_shim_entry_point(Att_shim_params params, bool first_call);
 };
 
 #endif //AC_AttitudeShim_H

@@ -1,16 +1,22 @@
+#ifndef Box_H
+#define Box_H
+
 #include <math.h>
-#include <algorithm>
+#include <AP_InertialNav.h>     // Inertial Navigation library
+#include "AC_AttitudeControl.h"
+#include "AC_AttitudeShim.h"
 
 // Acceleration due to gravity in cm/s/s.
 // Sensors seem to use cm as length unit.
 // This constant has same level of precision
 // as python simulation.
-static const float g = -980.665;
-static const float d = 1;
+static const float gravity = 980.665f;
+static const float d = 0.1;
 
 struct control_in {
   float a;
   float theta;
+  bool updated;
 };
 
 struct state {
@@ -33,20 +39,41 @@ struct shim_params {
   float theta_min;
 };
 
-class BoxShim {
+class BoxShim : public AC_AttitudeShim {
  public:
-  BoxShim(shim_params p)
-    : _params(p)
-  {};
+  BoxShim(AP_AHRS &ahrs,
+	  const AP_Vehicle::MultiCopter &aparm,
+	  AP_Motors& motors,
+	  AC_P& pi_angle_roll, AC_P& pi_angle_pitch, AC_P& pi_angle_yaw,
+	  AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw,
+	  const AP_InertialNav& inav
+	  ) :
+  AC_AttitudeShim(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
+		  pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
+    _inav(inav)
+    {};
 
-  void set_params(shim_params p) {_params = p;}
+  void set_params(shim_params p) {_params = p; }
+
+ private:
+
+  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
+
+  float get_x();
+  float get_y();
+  float get_vx();
+  float get_vy();
+
+  float throttle_to_accel_scale();
+
+  float get_acc_from_throttle(float throttle);
+  float get_throttle_from_acc(float A);
+
 
   /*
    * Runs the monitor, returning a safe control input.
    */
   control_in monitor(control_in proposed, state st);
-
- private:
 
   /*
    * Runs the safety check in one dimension
@@ -62,7 +89,7 @@ class BoxShim {
    * the velocity monitor's safety check, so we don't
    * have to consider it.
    */
-  control_in default_action(state st);
+  control_in default_action(float x, float y, float vx, float vy);
 
   /*
    * Returns the default action for one rectangular dimension.
@@ -101,4 +128,8 @@ class BoxShim {
    * Parameters of this shim
    */
   shim_params _params;
+
+  const AP_InertialNav& _inav;
 };
+
+#endif //Box_H
