@@ -31,7 +31,6 @@ struct shim_params {
   float ubvy;
   float lbvy;
   float theta_min;
-  float theta_max;
 };
 
 class BoxShim {

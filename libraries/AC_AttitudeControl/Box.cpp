@@ -140,7 +140,7 @@ control_in BoxShim::monitor(control_in proposed, state st) {
       safe_acc(A*cos(Theta)-g, vy+shift(ubvy,lbvy),
 	       y+shift(uby,lby), bound_shift(uby,lby),
 	       bound_shift(ubvy,lbvy), amin_Y()) &&
-      _params.theta_min <= Theta <= _params.theta_max) {
+      _params.theta_min <= Theta <= -_params.theta_min) {
     return proposed;
   } else {
     return default_action(st);
