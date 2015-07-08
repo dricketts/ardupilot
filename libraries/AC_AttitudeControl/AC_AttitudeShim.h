@@ -25,6 +25,23 @@
 // Enumeration of the functions we shim over (used for dispatching)
 enum Att_shim_fn {ATT_SET_SMOOTH, ATT_SET, ATT_SET_SLEW, ATT_SET_RATES, ATT_SET_BODYFRAME, THROTTLE_SET};
 
+// statistics about the shim and motors
+// should be averages over the number of
+// iterations since the last time this struct
+// was requested
+// we'll have a variable for count, a
+// variable for the sum of each field,
+// and we'll take the average when the
+// stats are requested
+// we'll also reset everything to zero
+// when the stats are requested
+struct shim_stats {
+    float percent_rejected;
+    float avg_accel_diff;
+    bool set_motors_from_acc_failed;
+};
+
+
 // Data structure used for passing parameters to shim functions
 // This is NOT the parameters data structure for MAVLink messaging.
 
@@ -47,16 +64,27 @@ struct Att_shim_params {
 // @class     AC_AttitudeShim
 class AC_AttitudeShim : public AC_AttitudeControl {
 public:
+  // Constructor
+  // Takes parameters for the superclass,
+  // As well as initial values for bounds and other internal shim variables
+  // TODO - DELAY...
   AC_AttitudeShim( AP_AHRS &ahrs,
                         const AP_Vehicle::MultiCopter &aparm,
                         AP_Motors& motors,
                         AC_P& pi_angle_roll, AC_P& pi_angle_pitch, AC_P& pi_angle_yaw,
-                        AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw
-                        ) :
+                        AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw,
+                        const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
+                        const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
+                        const float roll_ub, const float roll_lb, const float abraking,
+                        const float d_ctrl) :
                         AC_AttitudeControl(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
-                                           pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw)
+                                           pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
+                        _h_ub(h_ub), _h_lb(h_lb), _hprime_ub(hprime_ub), _hprime_lb(hprime_lb),
+                        _x_ub(x_ub), _x_lb(x_lb), _xprime_ub(xprime_ub), _xprime_lb(xprime_lb),
+                        _roll_ub(roll_ub), _roll_lb(roll_lb), _abraking(abraking),
+                        _d_ctrl(d_ctrl)
     {
-    }
+    };
 
     // empty destructor to suppress compiler warning
     virtual ~AC_AttitudeShim() {}
@@ -92,14 +120,105 @@ public:
     // provide 0 to cut motors
     void set_throttle_out(int16_t throttle_pwm, bool apply_angle_boost);
 
+    //
+    // Accessors
+    //
+
+    // enable/disable shim
+    void enable_shim() {_shim_on = true;}
+    void disable_shim() {_shim_on = false;}
+
+    // set shim bounding parameters
+    void set_h_ub(float b) {_h_ub = b;}
+    void set_h_lb(float b) {_h_lb = b;}
+    void set_hprime_ub(float b) {_hprime_ub = b;}
+    void set_hprime_lb(float b) {_hprime_lb = b;}
+    void set_x_ub(float b) {_x_ub = b;}
+    void set_x_lb(float b) {_x_lb = b;}
+    void set_xprime_ub(float b) {_xprime_ub = b;}
+    void set_xprime_lb(float b) {_xprime_lb = b;}
+    void set_roll_ub(float r) {_roll_ub = r;}
+    void set_roll_lb(float r) {_roll_lb = r;}
+    void set_abraking(float a) {_abraking = a;}
+
+    // get shim information
+    bool shim_on() {return _shim_on;}
+    float h_ub() {return _h_ub;}
+    float h_lb() {return _h_lb;}
+    float hprime_ub() {return _hprime_ub;}
+    float hprime_lb() {return _hprime_lb;}
+    float x_ub() {return _x_ub;}
+    float x_lb() {return _x_lb;}
+    float xprime_ub() {return _xprime_ub;}
+    float xprime_lb() {return _xprime_lb;}
+    float roll_ub() {return _roll_ub;}
+    float roll_lb() {return _roll_lb;}
+    float abraking() {return _abraking;}
+
+    //
+    // Stats Reporing (Accessor)
+    //
+    shim_stats get_shim_stats() {
+        shim_stats stats;
+        if (_count > 0) {
+            float fcount = _count;
+            stats.percent_rejected = _rejected_sum/fcount;
+            stats.avg_accel_diff = _accel_diff_sum/fcount;
+            stats.set_motors_from_acc_failed = _set_motors_from_acc_failed;
+            _count = 0;
+            _rejected_sum = 0;
+            _accel_diff_sum = 0;
+            _set_motors_from_acc_failed = false;
+        }
+        return stats;
+    }
+
 private:
 
   // Main entry point for the shim. All the overriden throttle and attitude functions
-  // Call into this one.
-  // Params stores information about the function to call, and its arguments
+  // call into this one.
+  // params stores information about the function to call, and its arguments
   // first_call stores whether we should also update the throttle if we are
   // currently updating attitude (or vice versa)
   void attitude_shim_entry_point(Att_shim_params params, bool first_call);
+
+  //
+  // Member Variables
+  //
+
+  // for stats reporting
+  // number of controller runs
+  uint32_t _count;
+  // how many proposed attitudes were rejected
+  uint32_t _rejected_sum;
+  // sum of differences in acceleration between proposed and actual
+  float _accel_diff_sum;
+  // did we fail to reset motor accelerations?
+  bool _set_motors_from_acc_failed;
+
+  // for actual shim
+  // is the shim on?
+  bool _shim_on;
+  // delay associated with actuators
+  const float _d_ctrl;
+  // height bounds
+  float _h_ub;
+  float _h_lb;
+  // vertical velocity bounds
+  float _hprime_ub;
+  float _hprime_lb;
+  // horizontal bounds
+  float _x_ub;
+  float _x_lb;
+  // horizontal velocity bounds
+  float _xprime_ub;
+  float _xprime_lb;
+  // roll bounds
+  float _roll_ub;
+  float _roll_lb;
+  // braking acceleration for vertical dimension
+  float _abraking;
+
 };
 
 #endif //AC_AttitudeShim_H

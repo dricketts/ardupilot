@@ -145,7 +145,7 @@ static void init_ardupilot()
 
     // initialise battery monitor
     battery.init();
-    
+
     rssi_analog_source      = hal.analogin->channel(g.rssi_pin);
 
     barometer.init();
@@ -171,7 +171,7 @@ static void init_ardupilot()
 #endif
 
 #if MAVLINK_COMM_NUM_BUFFERS > 2
-    if (g.serial2_protocol == SERIAL2_FRSKY_DPORT || 
+    if (g.serial2_protocol == SERIAL2_FRSKY_DPORT ||
         g.serial2_protocol == SERIAL2_FRSKY_SPORT) {
         frsky_telemetry.init(hal.uartD, g.serial2_protocol);
     } else {
@@ -181,7 +181,8 @@ static void init_ardupilot()
 
     // identify ourselves correctly with the ground station
     mavlink_system.sysid = g.sysid_this_mav;
-    mavlink_system.type = 2; //MAV_QUADROTOR;
+    // commented out; doesn't work with new version of MAVlink
+    // mavlink_system.type = 2; //MAV_QUADROTOR;
 
 #if LOGGING_ENABLED == ENABLED
     DataFlash.Init(log_structure, sizeof(log_structure)/sizeof(log_structure[0]));
@@ -336,7 +337,7 @@ static void startup_ground(bool force_gyro_cal)
 // returns true if the GPS is ok and home position is set
 static bool GPS_ok()
 {
-    if (ap.home_is_set && gps.status() >= AP_GPS::GPS_OK_FIX_3D && 
+    if (ap.home_is_set && gps.status() >= AP_GPS::GPS_OK_FIX_3D &&
         !gps_glitch.glitching() && !failsafe.gps &&
         !ekf_check_state.bad_compass && !failsafe.ekf) {
         return true;
@@ -361,7 +362,7 @@ static void update_auto_armed()
         }
     }else{
         // arm checks
-        
+
 #if FRAME_CONFIG == HELI_FRAME
         // for tradheli if motors are armed and throttle is above zero and the motor is started, auto_armed should be true
         if(motors.armed() && !ap.throttle_zero && motors.motor_runup_complete()) {
@@ -405,7 +406,7 @@ static void check_usb_mux(void)
 static void telemetry_send(void)
 {
 #if FRSKY_TELEM_ENABLED == ENABLED
-    frsky_telemetry.send_frames((uint8_t)control_mode, 
+    frsky_telemetry.send_frames((uint8_t)control_mode,
                                 (AP_Frsky_Telem::FrSkyProtocol)g.serial2_protocol.get());
 #endif
 }

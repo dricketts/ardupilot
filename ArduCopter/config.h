@@ -140,6 +140,50 @@
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////
+// Default Shim configuration
+// TODO - some of these may no longer be exactly what we want
+#ifndef SHIM
+#define SHIM 1
+#endif
+#ifndef SHIM_H_UB
+#define SHIM_H_UB 1000 // shim upper height bound in cm
+#endif
+#ifndef SHIM_H_LB
+#define SHIM_H_LB 0 // shim lower height bound in cm
+#endif
+#ifndef SHIM_HPRIME_UB
+#define SHIM_HPRIME_UB 10 // shim upper height velocity bound in cm/s
+#endif
+#ifndef SHIM_HPRIME_LB
+#define SHIM_HPRIME_LB -10 // shim lower height velocity bound in cm/s
+#endif
+#ifndef SHIM_X_UB
+#define SHIM_X_UB 1000 // shim maximum horizontal ("x"-coordinate) bound in cm
+#endif
+#ifndef SHIM_X_LB
+#define SHIM_X_LB 0 // shim minimum horizontal ("x"-coordinate) bound in cm
+#endif
+#ifndef SHIM_XPRIME_UB
+#define SHIM_XPRIME_UB 10 // shim maximum horizontal ("x"-coordinate) velocity bound in cm/s
+#endif
+#ifndef SHIM_XPRIME_LB
+#define SHIM_XPRIME_LB -10 // shim minimum horizontal ("x"-coordinate) velocity bound in cm/s
+#endif
+#ifndef SHIM_ROLL_UB
+#define SHIM_ROLL_UB 12.0 // shim maximum roll attitude bound in ???
+#endif
+#ifndef SHIM_ROLL_LB
+#define SHIM_ROLL_LB -12.0 // shim minimum roll attitude bound in ???
+#endif
+#ifndef SHIM_DELAY
+#define SHIM_DELAY 0.2
+#endif
+// TODO - this is almost certainly not what we want
+#ifndef SHIM_ABRAKING
+#define SHIM_ABRAKING 0
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////
 // TradHeli defaults
 #if FRAME_CONFIG == HELI_FRAME
   # define RC_FAST_SPEED                        125
@@ -241,7 +285,7 @@
 #endif
 
 #ifndef CH8_OPTION
- # define CH8_OPTION            AUX_SWITCH_DO_NOTHING
+ # define CH8_OPTION            AUX_SWITCH_SHIM
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

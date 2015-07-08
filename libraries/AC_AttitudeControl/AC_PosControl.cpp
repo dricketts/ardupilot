@@ -395,8 +395,9 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
 
     // To-Do: pull min/max throttle from motors
     // To-Do: we had a contraint here but it's now removed, is this ok?  with the motors library handle it ok?
+    // TODO: this interacts badly with the way we have shimmed over the attitude controller, I think
     _attitude_control.set_throttle_out((int16_t)p+i+d+_throttle_hover, true);
-    
+
     // to-do add back in PID logging?
 }
 

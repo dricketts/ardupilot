@@ -659,7 +659,11 @@ AC_AttitudeControl_Heli attitude_control(ahrs, aparm, motors, g.p_stabilize_roll
 #else
 // #if SHIM
 AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
-                                 g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
+                                 g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw,
+                                 SHIM_H_UB, SHIM_H_LB, SHIM_HPRIME_UB, SHIM_HPRIME_LB,
+                                 SHIM_X_UB, SHIM_X_LB, SHIM_XPRIME_UB, SHIM_XPRIME_LB,
+                                 SHIM_ROLL_UB, SHIM_ROLL_LB, SHIM_ABRAKING, SHIM_DELAY
+                                 );
 // #else
 // AC_AttitudeControl attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
 //                        g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);

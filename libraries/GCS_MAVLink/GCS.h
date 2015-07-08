@@ -49,6 +49,7 @@ enum ap_message {
     MSG_RANGEFINDER,
     MSG_TERRAIN,
     MSG_BATTERY2,
+    MSG_SHIM_STATUS,
     MSG_RETRY_DEFERRED // this must be last
 };
 
@@ -200,7 +201,7 @@ public:
     void send_battery2(const AP_BattMonitor &battery);
 
     // return a bitmap of active channels. Used by libraries to loop
-    // over active channels to send to all active channels    
+    // over active channels to send to all active channels
     static uint8_t active_channel_mask(void) { return mavlink_active; }
 
     /*
