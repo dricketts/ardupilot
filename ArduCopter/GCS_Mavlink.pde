@@ -127,9 +127,9 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                  attitude_control.x_lb(),
                                  attitude_control.xprime_ub(),
                                  attitude_control.xprime_lb(),
-                                 attitude_control.roll_ub(),
                                  attitude_control.roll_lb(),
-                                 attitude_control.abraking());
+                                 attitude_control.abraking(),
+                                 attitude_control.mid_throttle());
 
     shim_stats stats = attitude_control.get_shim_stats();
     mavlink_msg_shim_stats_send(chan,
@@ -929,9 +929,9 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         attitude_control.set_x_lb(packet.x_lb);
         attitude_control.set_xprime_ub(packet.xprime_ub);
         attitude_control.set_xprime_lb(packet.xprime_lb);
-        attitude_control.set_roll_ub(packet.roll_ub);
         attitude_control.set_roll_lb(packet.roll_lb);
         attitude_control.set_abraking(packet.abraking);
+        attitude_control.set_mid_throttle(packet.mid_throttle);
 
 #endif
         break;

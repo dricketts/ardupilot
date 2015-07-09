@@ -482,10 +482,10 @@
       <field type="float" name="xprime_ub">the "x" dimension velocity upper bound of the shim in cm/s</field>
       <field type="float" name="xprime_lb">the "x" dimension velocity lower bound of the shim in cm/s</field>
 
-      <field type="float" name="roll_ub">the upper bound on roll angle allowed by the shim in (??DEGREES??)</field>
       <field type="float" name="roll_lb">the lower bound on roll angle allowed by the shim in (??DEGREES??)</field>
 
       <field type="float" name="abraking">The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.</field>
+      <field type="float" name="mid_throttle">The throttle required for hover.</field>
   </message>
 
     <!-- message for shim to report back its status -->

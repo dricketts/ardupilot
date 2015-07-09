@@ -202,7 +202,7 @@ float BoxShim::get_vy() {
 }
 
 float BoxShim::throttle_to_accel_scale() {
-  return gravity/500.0f;
+  return gravity/mid_throttle();
 }
 
 // Gives an estimate of an upper bound on acceleration

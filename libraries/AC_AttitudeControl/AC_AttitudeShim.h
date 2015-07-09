@@ -75,13 +75,13 @@ public:
                         AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw,
                         const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
                         const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
-                        const float roll_ub, const float roll_lb, const float abraking,
+				   const float roll_lb, const float abraking, const float mid_throttle,
                         const float d_ctrl) :
                         AC_AttitudeControl(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
                                            pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
                         _h_ub(h_ub), _h_lb(h_lb), _hprime_ub(hprime_ub), _hprime_lb(hprime_lb),
                         _x_ub(x_ub), _x_lb(x_lb), _xprime_ub(xprime_ub), _xprime_lb(xprime_lb),
-                        _roll_ub(roll_ub), _roll_lb(roll_lb), _abraking(abraking),
+                   	  _roll_lb(roll_lb), _abraking(abraking), _mid_throttle(mid_throttle),
                         _d_ctrl(d_ctrl)
     {
     };
@@ -137,9 +137,9 @@ public:
     void set_x_lb(float b) {_x_lb = b;}
     void set_xprime_ub(float b) {_xprime_ub = b;}
     void set_xprime_lb(float b) {_xprime_lb = b;}
-    void set_roll_ub(float r) {_roll_ub = r;}
     void set_roll_lb(float r) {_roll_lb = r;}
     void set_abraking(float a) {_abraking = a;}
+	void set_mid_throttle(float t) {_mid_throttle = t;}
 
     // get shim information
     bool shim_on() {return _shim_on;}
@@ -151,9 +151,9 @@ public:
     float x_lb() {return _x_lb;}
     float xprime_ub() {return _xprime_ub;}
     float xprime_lb() {return _xprime_lb;}
-    float roll_ub() {return _roll_ub;}
     float roll_lb() {return _roll_lb;}
     float abraking() {return _abraking;}
+	float mid_throttle() {return _mid_throttle;}
 
     //
     // Stats Reporing (Accessor)
@@ -213,10 +213,10 @@ protected:
   float _xprime_ub;
   float _xprime_lb;
   // roll bounds
-  float _roll_ub;
   float _roll_lb;
   // braking acceleration for vertical dimension
   float _abraking;
+  float _mid_throttle;
 
 
   // Entry point of shim; shimmed-over functions call into this
