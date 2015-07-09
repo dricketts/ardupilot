@@ -46,14 +46,14 @@ class BoxShim : public AC_AttitudeShim {
     {
     };
 
- private:
-
-  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
-
   float get_x();
   float get_y();
   float get_vx();
   float get_vy();
+
+ private:
+
+  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
 
   float throttle_to_accel_scale();
 

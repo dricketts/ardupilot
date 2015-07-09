@@ -494,6 +494,10 @@
       <field type="float" name="percent_rejected">The percentage of iterations in the last window_time milliseconds that the verified shim rejected the proposed acceleration and issued its own.</field>
       <field type="float" name="avg_accel_diff">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
       <field type="uint8_t" name="set_motors_from_acc_failed">1 if set_motors_from_acc failed since the last time this message was sent. 0 otherwise.</field>
+      <field type="float" name="x_position">The value of x, relative to starting position.</field>
+      <field type="float" name="height">The height, relative to starting position.</field>
+      <field type="float" name="vel_x">The velocity in the x direction.</field>
+      <field type="float" name="vel_vertical">The velocity in the vertical direction.</field>
     </message>
 
      </messages>

@@ -135,7 +135,11 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
     mavlink_msg_shim_stats_send(chan,
                                 stats.percent_rejected,
                                 stats.avg_accel_diff,
-                                (stats.set_motors_from_acc_failed ? 1 : 0));
+                                (stats.set_motors_from_acc_failed ? 1 : 0),
+                                attitude_control.get_x(),
+                                attitude_control.get_y(),
+                                attitude_control.get_vx(),
+                                attitude_control.get_vy());
     /*
     mavlink_msg_throttle_pwm_stats_send(chan,
                                    stats.window_time,
