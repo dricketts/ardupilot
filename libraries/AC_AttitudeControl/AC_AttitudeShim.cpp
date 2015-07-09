@@ -55,16 +55,16 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool fir
   static int throttle_calls = 0;
 
   if (params.which_fn == THROTTLE_SET) {
-    iprintf("Throttle set to %d\n", params.throttle);
+    //iprintf("Throttle set to %d\n", params.throttle);
     throttle_calls++;
-    iprintf("Total throttle calls: %d\n", throttle_calls);
-    iprintf("Total attitude calls: %d\n\n", attitude_calls);
+    //iprintf("Total throttle calls: %d\n", throttle_calls);
+    //iprintf("Total attitude calls: %d\n\n", attitude_calls);
   }
   else {
-    iprintf("(Roll, Pitch, Yaw) set to (%f, %f, %f)\n", params.roll, params.pitch, params.yaw);
+    //iprintf("(Roll, Pitch, Yaw) set to (%f, %f, %f)\n", params.roll, params.pitch, params.yaw);
     attitude_calls++;
-    iprintf("Total throttle calls: %d\n", throttle_calls);
-    iprintf("Total attitude calls: %d\n\n", attitude_calls);
+    //iprintf("Total throttle calls: %d\n", throttle_calls);
+    //iprintf("Total attitude calls: %d\n\n", attitude_calls);
   }
 
   // Call the function that the user wanted.

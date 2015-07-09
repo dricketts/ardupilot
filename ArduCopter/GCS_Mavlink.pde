@@ -898,6 +898,8 @@ void GCS_MAVLINK::handle_change_alt_request(AP_Mission::Mission_Command &cmd)
     wp_nav.set_desired_alt(cmd.content.location.alt);
 }
 
+// for shim-related debug printing
+extern const AP_HAL::HAL& hal;
 
 void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 {
