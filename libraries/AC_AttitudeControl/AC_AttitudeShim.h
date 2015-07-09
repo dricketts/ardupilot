@@ -20,8 +20,6 @@
 // Enabling run-time monitoring at the level of abstraction of sending
 // Throttle/attitude commands.
 
-// TODO: Have a shim stats module
-
 // Enumeration of the functions we shim over (used for dispatching)
 enum Att_shim_fn {ATT_SET_SMOOTH, ATT_SET, ATT_SET_SLEW, ATT_SET_RATES, ATT_SET_BODYFRAME, THROTTLE_SET};
 
@@ -68,6 +66,8 @@ public:
   // Takes parameters for the superclass,
   // As well as initial values for bounds and other internal shim variables
   // TODO - DELAY...
+  // NB - currently d_ctrl is the only one of these that cannot be set
+  // from the ground station
   AC_AttitudeShim( AP_AHRS &ahrs,
                         const AP_Vehicle::MultiCopter &aparm,
                         AP_Motors& motors,
@@ -173,14 +173,13 @@ public:
         return stats;
     }
 
-private:
+protected:
 
   // Main entry point for the shim. All the overriden throttle and attitude functions
   // call into this one.
   // params stores information about the function to call, and its arguments
   // first_call stores whether we should also update the throttle if we are
   // currently updating attitude (or vice versa)
-  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
 
   //
   // Member Variables
@@ -219,6 +218,9 @@ private:
   // braking acceleration for vertical dimension
   float _abraking;
 
+
+  // Entry point of shim; shimmed-over functions call into this
+  virtual void attitude_shim_entry_point(Att_shim_params params, bool first_call);
 };
 
 #endif //AC_AttitudeShim_H

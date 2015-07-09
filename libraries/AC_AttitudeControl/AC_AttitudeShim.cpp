@@ -7,7 +7,8 @@
 extern const AP_HAL::HAL& hal;
 
 // for use within attitude_shim_entry_point
-#define PRINTERVAL 20
+#define PRINTERVAL 500
+
 #define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
 
 // Attitude shim implementation
@@ -55,16 +56,16 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool fir
   static int throttle_calls = 0;
 
   if (params.which_fn == THROTTLE_SET) {
-    //iprintf("Throttle set to %d\n", params.throttle);
-    throttle_calls++;
-    //iprintf("Total throttle calls: %d\n", throttle_calls);
-    //iprintf("Total attitude calls: %d\n\n", attitude_calls);
+    // iprintf("Throttle set to %d\n", params.throttle);
+    // throttle_calls++;
+    // iprintf("Total throttle calls: %d\n", throttle_calls);
+    // iprintf("Total attitude calls: %d\n\n", attitude_calls);
   }
   else {
-    //iprintf("(Roll, Pitch, Yaw) set to (%f, %f, %f)\n", params.roll, params.pitch, params.yaw);
-    attitude_calls++;
-    //iprintf("Total throttle calls: %d\n", throttle_calls);
-    //iprintf("Total attitude calls: %d\n\n", attitude_calls);
+	  // iprintf("(Roll, Pitch, Yaw) set to (%f, %f, %f)\n", params.roll, params.pitch, params.yaw);
+    // attitude_calls++;
+    // iprintf("Total throttle calls: %d\n", throttle_calls);
+    // iprintf("Total attitude calls: %d\n\n", attitude_calls);
   }
 
   // Call the function that the user wanted.
@@ -139,7 +140,7 @@ void AC_AttitudeShim::angle_ef_roll_pitch_rate_ef_yaw_smooth(float roll_angle_ef
   params.smoothing_gain = smoothing_gain;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }
 
 // angle_ef_roll_pitch_rate_ef_yaw - attempts to maintain a roll and pitch angle and yaw rate (all earth frame)
@@ -152,7 +153,7 @@ void AC_AttitudeShim::angle_ef_roll_pitch_rate_ef_yaw(float roll_angle_ef, float
   params.yaw = yaw_rate_ef;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }
 
 // angle_ef_roll_pitch_yaw - attempts to maintain a roll, pitch and yaw angle (all earth frame)
@@ -167,7 +168,7 @@ void AC_AttitudeShim::angle_ef_roll_pitch_yaw(float roll_angle_ef, float pitch_a
   params.slew_yaw = slew_yaw;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }
 
 // rate_ef_roll_pitch_yaw - attempts to maintain a roll, pitch and yaw rate (all earth frame)
@@ -180,7 +181,7 @@ void AC_AttitudeShim::rate_ef_roll_pitch_yaw(float roll_rate_ef, float pitch_rat
   params.yaw = yaw_rate_ef;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }
 
 // rate_bf_roll_pitch_yaw - attempts to maintain a roll, pitch and yaw rate (all body frame)
@@ -193,7 +194,7 @@ void AC_AttitudeShim::rate_bf_roll_pitch_yaw(float roll_rate_bf, float pitch_rat
   params.yaw = yaw_rate_bf;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }
 
 // set_throttle_out - to be called by upper throttle controllers when they wish to provide throttle output directly to motors
@@ -206,5 +207,5 @@ void AC_AttitudeShim::set_throttle_out(int16_t throttle_pwm, bool apply_angle_bo
   params.angle_boost = apply_angle_boost;
   params.initialized = true;
 
-  AC_AttitudeShim::attitude_shim_entry_point(params, true);
+  attitude_shim_entry_point(params, true);
 }

@@ -121,7 +121,8 @@
 #include <AC_P.h>               // P library
 #include <AC_AttitudeControl.h> // Attitude control library
 #include <AC_AttitudeControl_Heli.h> // Attitude control library for traditional helicopter
-#include <AC_AttitudeShim.h> // Shimmed attitude control library
+//#include <AC_AttitudeShim.h> // Shimmed attitude control library
+#include <Box.h>
 #include <AC_PosControl.h>      // Position control library
 #include <RC_Channel.h>         // RC Channel Library
 #include <AP_Motors.h>          // AP Motors library
@@ -658,12 +659,23 @@ AC_AttitudeControl_Heli attitude_control(ahrs, aparm, motors, g.p_stabilize_roll
                         g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
 #else
 // #if SHIM
+/*
 AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
                                  g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw,
                                  SHIM_H_UB, SHIM_H_LB, SHIM_HPRIME_UB, SHIM_HPRIME_LB,
                                  SHIM_X_UB, SHIM_X_LB, SHIM_XPRIME_UB, SHIM_XPRIME_LB,
                                  SHIM_ROLL_UB, SHIM_ROLL_LB, SHIM_ABRAKING, SHIM_DELAY
                                  );
+                                 */
+
+// AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
+//                                  g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
+BoxShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
+                         g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw,
+                         SHIM_H_UB, SHIM_H_LB, SHIM_HPRIME_UB, SHIM_HPRIME_LB,
+                         SHIM_X_UB, SHIM_X_LB, SHIM_XPRIME_UB, SHIM_XPRIME_LB,
+                         SHIM_ROLL_UB, SHIM_ROLL_LB, SHIM_ABRAKING, SHIM_DELAY,
+                         inertial_nav);
 // #else
 // AC_AttitudeControl attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
 //                        g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
