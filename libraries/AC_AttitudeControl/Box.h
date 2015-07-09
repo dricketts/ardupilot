@@ -11,7 +11,6 @@
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = 980.665f;
-static const float d = 0.01;
 
 struct control_in {
   float a;
@@ -24,19 +23,6 @@ struct state {
   float y;
   float vx;
   float vy;
-};
-
-struct shim_params {
-  float amin;
-  float ubx;
-  float lbx;
-  float uby;
-  float lby;
-  float ubvx;
-  float lbvx;
-  float ubvy;
-  float lbvy;
-  float theta_min;
 };
 
 class BoxShim : public AC_AttitudeShim {
@@ -57,9 +43,8 @@ class BoxShim : public AC_AttitudeShim {
       h_ub, h_lb, hprime_ub, hprime_lb, x_ub, x_lb, xprime_ub, xprime_lb,
       roll_ub, roll_lb, abraking, d_ctrl),
     _inav(inav)
-    {};
-
-  void set_params(shim_params p) {_params = p; }
+    {
+    };
 
  private:
 
@@ -129,11 +114,6 @@ class BoxShim : public AC_AttitudeShim {
    * Breaking acceleration in the Y direction
    */
   float amin_Y();
-
-  /*
-   * Parameters of this shim
-   */
-  shim_params _params;
 
   const AP_InertialNav& _inav;
 };

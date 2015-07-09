@@ -146,41 +146,42 @@
 #define SHIM 1
 #endif
 #ifndef SHIM_H_UB
-#define SHIM_H_UB 1000 // shim upper height bound in cm
+#define SHIM_H_UB 4000 // shim upper height bound in cm
 #endif
 #ifndef SHIM_H_LB
-#define SHIM_H_LB 0 // shim lower height bound in cm
+#define SHIM_H_LB -1000 // shim lower height bound in cm
 #endif
 #ifndef SHIM_HPRIME_UB
-#define SHIM_HPRIME_UB 10 // shim upper height velocity bound in cm/s
+#define SHIM_HPRIME_UB 500 // shim upper height velocity bound in cm/s
 #endif
 #ifndef SHIM_HPRIME_LB
-#define SHIM_HPRIME_LB -10 // shim lower height velocity bound in cm/s
+#define SHIM_HPRIME_LB -500 // shim lower height velocity bound in cm/s
 #endif
 #ifndef SHIM_X_UB
-#define SHIM_X_UB 1000 // shim maximum horizontal ("x"-coordinate) bound in cm
+#define SHIM_X_UB 10000 // shim maximum horizontal ("x"-coordinate) bound in cm
 #endif
 #ifndef SHIM_X_LB
-#define SHIM_X_LB 0 // shim minimum horizontal ("x"-coordinate) bound in cm
+#define SHIM_X_LB -10000 // shim minimum horizontal ("x"-coordinate) bound in cm
 #endif
 #ifndef SHIM_XPRIME_UB
-#define SHIM_XPRIME_UB 10 // shim maximum horizontal ("x"-coordinate) velocity bound in cm/s
+#define SHIM_XPRIME_UB 500.0f // shim maximum horizontal ("x"-coordinate) velocity bound in cm/s
 #endif
 #ifndef SHIM_XPRIME_LB
-#define SHIM_XPRIME_LB -10 // shim minimum horizontal ("x"-coordinate) velocity bound in cm/s
+#define SHIM_XPRIME_LB -500.0f // shim minimum horizontal ("x"-coordinate) velocity bound in cm/s
 #endif
 #ifndef SHIM_ROLL_UB
+// This should never be used
 #define SHIM_ROLL_UB 12.0 // shim maximum roll attitude bound in ???
 #endif
 #ifndef SHIM_ROLL_LB
-#define SHIM_ROLL_LB -12.0 // shim minimum roll attitude bound in ???
+#define SHIM_ROLL_LB -(M_PI + 0.0f)/4.0f // shim minimum roll attitude bound in ???
 #endif
 #ifndef SHIM_DELAY
-#define SHIM_DELAY 0.2
+#define SHIM_DELAY 0.01
 #endif
 // TODO - this is almost certainly not what we want
 #ifndef SHIM_ABRAKING
-#define SHIM_ABRAKING 0
+#define SHIM_ABRAKING -500.0f
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////
