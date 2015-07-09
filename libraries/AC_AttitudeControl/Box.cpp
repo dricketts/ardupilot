@@ -318,7 +318,7 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
   control_in safe = monitor(proposed, st);
 
   if (safe.updated) {
-    params.roll = degrees(safe.theta);
+    params.roll = degrees(safe.theta)*100.0f;
     params.throttle = get_throttle_from_acc(safe.a);
     params.angle_boost = false;
   }
