@@ -5,7 +5,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-#define PRINTERVAL 501
+#define PRINTERVAL 1000
 
 #define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
 
@@ -65,9 +65,18 @@ bool BoxShim::vel_safe_acc(float a, float v, float ubv) {
  * -PI <= theta <= PI
  */
 control_in BoxShim::rect_to_polar (float x, float y) {
+  static int printerval = -1;
+  printerval++;
+  if (printerval == PRINTERVAL) printerval = 0;
+
   control_in res;
   res.theta = atan2(y,x);
   res.a = sqrt((x*x) + (y*y));
+
+  if (res.theta > 1) {
+    iprintf("x, y: %f, %f\n", x, y);
+  }
+
   return res;
 }
 
@@ -76,6 +85,7 @@ control_in BoxShim::rect_to_polar (float x, float y) {
  */
 float BoxShim::default_rect_action_one_dim(float y, float v,
 					   float amin) {
+
   if (y > 0 && v > 0) {
     return amin;
   } else if (y > 0 && v <= 0) {
@@ -101,6 +111,13 @@ control_in BoxShim::default_action(float x, float y, float vx, float vy) {
   float ay = default_rect_action_one_dim(y, vy,
 					 amin_Y());
 
+  static int printerval = -1;
+  printerval++;
+  if (printerval == PRINTERVAL) printerval = 0;
+
+  // iprintf("Default AX: %f\n", ax);
+  // iprintf("Default AY: %f\n", ay);
+
   // We are rotated 90 degrees, so we reverse the arguments
   // We also account for gravity in the y direction
   return rect_to_polar(ay + gravity, ax);
@@ -120,16 +137,16 @@ static float bound_shift(float ub, float lb) {
 bool BoxShim::safe_acc(float a, float v, float y,
 		       float ub, float ubv, float amin) {
   // ensure we don't print too often
-  static int printerval = -1;
-  printerval++;
-  if (printerval == PRINTERVAL) printerval = 0;
+  // static int printerval = -1;
+  // printerval++;
+  // if (printerval == PRINTERVAL) printerval = 0;
 
-  if (!vel_safe_acc(-a,-v,ubv)) {
-    iprintf("Velneg: %f, %f, %f\n", -a, -v, ubv);
-  }
-  if (!pos_safe_acc(-a,-v,-y,ub,amin)) {
-    iprintf("Posneg: %f, %f, %f, %f, %f\n", -a, -v, -y, ub, amin);
-  }
+  // if (!vel_safe_acc(-a,-v,ubv)) {
+  //   iprintf("Velneg: %f, %f, %f\n", -a, -v, ubv);
+  // }
+  // if (!pos_safe_acc(-a,-v,-y,ub,amin)) {
+  //   iprintf("Posneg: %f, %f, %f, %f, %f\n", -a, -v, -y, ub, amin);
+  // }
 
   // iprintf("Velneg: %s\n", vel_safe_acc(-a,-v,ubv) ? "true" : "false");
   // iprintf("Velpos: %s\n", vel_safe_acc(a,v,ubv) ? "true" : "false");
@@ -193,8 +210,13 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   bool safe2 =
     safe_acc(A*cos(Theta)-gravity, vy, y, bound_shift(uby,lby),
 	     bound_shift(ubvy,lbvy), amin_Y());
-
-  //  iprintf("Safe1: %s\n", safe1 ? "true" : "false");
+  if (!safe1) {
+    iprintf("X safety check failed\n");
+  }
+  if (!safe2) {
+    iprintf("Y safety check failed\n");
+  }
+  // iprintf("Safe1: %s\n", safe1 ? "true" : "false");
   //  iprintf("Safe2: %s\n", safe2 ? "true" : "false");
   //iprintf("Bound: %f\n", bound_shift(uby,lby));
 
@@ -206,7 +228,7 @@ control_in BoxShim::monitor(control_in proposed, state st) {
 	       bound_shift(ubvy,lbvy), amin_Y()) &&
       _params.theta_min <= Theta &&
       Theta <= -_params.theta_min) {
-    iprintf("Issuing proposed\n");
+    // iprintf("Issuing proposed\n");
     control_in res = proposed;
     res.updated = false;
     return res;
@@ -253,7 +275,7 @@ float BoxShim::get_throttle_from_acc(float A) {
 
 void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call) {
 
-  _params = {-500.0f, 1000.0f, -1000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
+  _params = {-500.0f, 10000.0f, -10000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
 
   static float roll = 0.0f;
   static int16_t throttle = 0;
@@ -277,7 +299,7 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
   printerval++;
   if (printerval == PRINTERVAL) printerval = 0;
 
-  iprintf("Theta_min: %f\n", _params.theta_min);
+  // iprintf("Theta_min: %f\n", _params.theta_min);
 
   control_in proposed;
   proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
@@ -301,8 +323,8 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
     params.angle_boost = false;
   }
 
-  iprintf("Safe roll: %f\n", params.roll);
-  iprintf("Safe throttle: %u\n", params.throttle);
+  iprintf("Safe roll: %f\n", safe.theta);
+  iprintf("Safe aceeleration: %f\n", safe.a);
 
   AC_AttitudeShim::attitude_shim_entry_point(params, first_call);
 

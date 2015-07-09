@@ -659,6 +659,8 @@ AC_AttitudeControl_Heli attitude_control(ahrs, aparm, motors, g.p_stabilize_roll
                         g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
 #else
 // #if SHIM
+// AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
+//                                  g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
 BoxShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
                          g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw, inertial_nav);
 // #else

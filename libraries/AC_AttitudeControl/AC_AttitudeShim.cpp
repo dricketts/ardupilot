@@ -53,7 +53,7 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool fir
   static int throttle_calls = 0;
 
   if (params.which_fn == THROTTLE_SET) {
-	  iprintf("Throttle set to %d\n", params.throttle);
+	  // iprintf("Throttle set to %d\n", params.throttle);
     // throttle_calls++;
     // iprintf("Total throttle calls: %d\n", throttle_calls);
     // iprintf("Total attitude calls: %d\n\n", attitude_calls);
