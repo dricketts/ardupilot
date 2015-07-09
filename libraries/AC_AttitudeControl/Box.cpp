@@ -222,53 +222,55 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
 
   //_params = {-500.0f, 10000.0f, -10000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
 
-  static float roll = 0.0f;
-  static int16_t throttle = 0;
+  if (shim_on()) {
+    static float roll = 0.0f;
+    static int16_t throttle = 0;
 
-  switch (params.which_fn) {
+    switch (params.which_fn) {
 
-  case THROTTLE_SET:
+    case THROTTLE_SET:
 
-    throttle = params.throttle;
+      throttle = params.throttle;
 
-    break;
+      break;
     
-  default:
+    default:
 
-    roll = params.roll;
+      roll = params.roll;
 
+    }
+
+    // ensure we don't print too often
+    static int printerval = -1;
+    printerval++;
+    if (printerval == PRINTERVAL) printerval = 0;
+
+    control_in proposed;
+    proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
+    proposed.a =
+      get_acc_from_throttle(params.angle_boost ?
+			    get_angle_boost(throttle + 0.0f) :
+			    throttle + 0.0f);
+
+    state st;
+    st.x = get_x();
+    st.y = get_y();
+    st.vx = get_vx();
+    st.vy = get_vy();
+
+    iprintf("Y: %f, VY: %f, X: %f, VX: %f\n", st.y, st.vy, st.x, st.vx);
+
+    control_in safe = monitor(proposed, st);
+
+    if (safe.updated) {
+      params.roll = degrees(safe.theta)*100.0f;
+      params.throttle = get_throttle_from_acc(safe.a);
+      params.angle_boost = false;
+    }
+
+    iprintf("Safe roll: %f\n", safe.theta);
+    iprintf("Safe aceeleration: %f\n", safe.a);
   }
-
-  // ensure we don't print too often
-  static int printerval = -1;
-  printerval++;
-  if (printerval == PRINTERVAL) printerval = 0;
-
-  control_in proposed;
-  proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
-  proposed.a =
-    get_acc_from_throttle(params.angle_boost ?
-			  get_angle_boost(throttle + 0.0f) :
-			  throttle + 0.0f);
-
-  state st;
-  st.x = get_x();
-  st.y = get_y();
-  st.vx = get_vx();
-  st.vy = get_vy();
-
-  iprintf("Y: %f, VY: %f, X: %f, VX: %f\n", st.y, st.vy, st.x, st.vx);
-
-  control_in safe = monitor(proposed, st);
-
-  if (safe.updated) {
-    params.roll = degrees(safe.theta)*100.0f;
-    params.throttle = get_throttle_from_acc(safe.a);
-    params.angle_boost = false;
-  }
-
-  iprintf("Safe roll: %f\n", safe.theta);
-  iprintf("Safe aceeleration: %f\n", safe.a);
 
   AC_AttitudeShim::attitude_shim_entry_point(params, first_call);
 
