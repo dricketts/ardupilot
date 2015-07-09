@@ -2,6 +2,7 @@
 #include "AC_AttitudeControl.h"
 #include "AC_AttitudeShim.h"
 #include "AP_Math.h"
+#include <time.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -193,6 +194,8 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float vy = st.vy+shift(ubvy,lbvy);
   float A = proposed.a;
   float Theta = proposed.theta;
+  float AX = A*sin(Theta);
+  float AY = A*cos(Theta)-gravity;
 
   //iprintf("Theta_min: %s\n", _params.theta_min <= Theta ? "true" : "false");
   //iprintf("Theta_max: %s\n", Theta <= -_params.theta_min ? "true" : "false");
@@ -205,16 +208,17 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   //   _params.theta_min <= Theta &&
   //   Theta <= -_params.theta_min;
   bool safe1 =
-    safe_acc(A*sin(Theta), vx, x, bound_shift(ubx,lbx),
+    safe_acc(AX, vx, x, bound_shift(ubx,lbx),
 	     bound_shift(ubvx,lbvx), amin_X());
   bool safe2 =
-    safe_acc(A*cos(Theta)-gravity, vy, y, bound_shift(uby,lby),
+    safe_acc(AY, vy, y, bound_shift(uby,lby),
 	     bound_shift(ubvy,lbvy), amin_Y());
   if (!safe1) {
-    iprintf("X safety check failed\n");
+    iprintf("X safety check failed (AX, AY): %f, %f\n", AX, AY);
   }
   if (!safe2) {
-    iprintf("Y safety check failed\n");
+    iprintf("Y safety check failed (AX, AY): %f, %f\n", AX, AY);
+    iprintf("Xmin, Ymin: %f, %f\n", amin_X(), amin_Y());
   }
   // iprintf("Safe1: %s\n", safe1 ? "true" : "false");
   //  iprintf("Safe2: %s\n", safe2 ? "true" : "false");
@@ -222,15 +226,31 @@ control_in BoxShim::monitor(control_in proposed, state st) {
 
   // Issue the proposed signal if it passes
   // all safety checks, otherwise issue the default
-  if (safe_acc(A*sin(Theta), vx, x, bound_shift(ubx,lbx),
+  if (safe_acc(AX, vx, x, bound_shift(ubx,lbx),
 	       bound_shift(ubvx,lbvx), amin_X()) &&
-      safe_acc(A*cos(Theta)-gravity, vy, y, bound_shift(uby,lby),
+      safe_acc(AY, vy, y, bound_shift(uby,lby),
 	       bound_shift(ubvy,lbvy), amin_Y()) &&
       _params.theta_min <= Theta &&
       Theta <= -_params.theta_min) {
     // iprintf("Issuing proposed\n");
     control_in res = proposed;
     res.updated = false;
+    return res;
+  } else if (safe_acc(AX, vx, x, bound_shift(ubx,lbx),
+	       bound_shift(ubvx,lbvx), amin_X()) &&
+	     amin_X() <= AX && AX <= -amin_X()) {
+    float ay = default_rect_action_one_dim(y, vy,
+					 amin_Y());
+    control_in res = rect_to_polar(ay + gravity, AX);
+    res.updated = true;
+    return res;
+  } else if (safe_acc(AY, vy, y, bound_shift(uby,lby),
+	       bound_shift(ubvy,lbvy), amin_Y()) &&
+	     amin_Y() <= AY && AY <= -amin_Y()) {
+    float ax = default_rect_action_one_dim(x, vx,
+					 amin_X());
+    control_in res = rect_to_polar(AY + gravity, ax);
+    res.updated = true;
     return res;
   } else {
     iprintf("Issuing default\n");
@@ -299,11 +319,29 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
   printerval++;
   if (printerval == PRINTERVAL) printerval = 0;
 
+  // static clock_t last_clock = 0;
+  // static time_t last_time = 0;
+  // if(printerval == 0) {
+  //   clock_t t;
+  //   clock_t ct;
+  //   ct = clock();
+  //   t = ct - last_clock;
+  //   last_clock = ct;
+  //   time_t new_time = time(0);
+  //   time_t diff = difftime(new_time, last_time);
+  //   last_time = new_time;
+  //   iprintf("Time elapsed according to time: %d\n", diff);
+  //   iprintf("Time elapsed (seconds): %f\n", ((float)t)/((float)CLOCKS_PER_SEC));
+  // }
+
   // iprintf("Theta_min: %f\n", _params.theta_min);
 
   control_in proposed;
   proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
-  proposed.a = get_acc_from_throttle(throttle + 0.0f);
+  proposed.a =
+    get_acc_from_throttle(params.angle_boost ?
+			  get_angle_boost(throttle + 0.0f) :
+			  throttle + 0.0f);
 
   state st;
   st.x = get_x();

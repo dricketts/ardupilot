@@ -11,7 +11,7 @@
 // This constant has same level of precision
 // as python simulation.
 static const float gravity = 980.665f;
-static const float d = 0.1;
+static const float d = 0.01;
 
 struct control_in {
   float a;
