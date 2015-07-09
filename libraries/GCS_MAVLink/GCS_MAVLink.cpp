@@ -38,7 +38,9 @@ AP_HAL::BetterStream	*mavlink_comm_1_port;
 AP_HAL::BetterStream	*mavlink_comm_2_port;
 #endif
 
-mavlink_system_t mavlink_system = {7,1,0,0};
+// Needs to be changed because of MAVlink version bump or something
+// mavlink_system_t mavlink_system = {7,1,0,0};
+mavlink_system_t mavlink_system = {7,1};
 
 // mask of serial ports disabled to allow for SERIAL_CONTROL
 static uint8_t mavlink_locked_mask;

@@ -429,7 +429,7 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
         // enable or disable accel limiting by restoring defaults
         attitude_control.accel_limiting(ch_flag == AUX_SWITCH_HIGH);
         break;
-        
+
 #if MOUNT == ENABLE
     case AUX_SWITCH_RETRACT_MOUNT:
         switch (ch_flag) {
@@ -446,6 +446,22 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
     case AUX_SWITCH_RELAY:
         ServoRelayEvents.do_set_relay(0, ch_flag == AUX_SWITCH_HIGH);
         break;
+
+      case AUX_SWITCH_SHIM:
+      #if SHIM
+              switch (ch_flag) {
+                  case AUX_SWITCH_LOW:
+                      attitude_control.disable_shim();
+                      break;
+                  case AUX_SWITCH_MIDDLE:
+                      attitude_control.disable_shim();
+                      break;
+                  case AUX_SWITCH_HIGH:
+                      attitude_control.enable_shim();
+                      break;
+              }
+      #endif
+      break;
     }
 }
 
@@ -490,4 +506,3 @@ static void auto_trim()
         }
     }
 }
-

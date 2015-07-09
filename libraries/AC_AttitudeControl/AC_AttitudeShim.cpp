@@ -6,6 +6,7 @@
 
 extern const AP_HAL::HAL& hal;
 
+// for use within attitude_shim_entry_point
 #define PRINTERVAL 500
 
 #define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
@@ -15,10 +16,15 @@ extern const AP_HAL::HAL& hal;
 // Shim entry point
 // Params: stores a description of which attitude/throttle function to call out to
 // first_call: if true, call the throttle controller after making an attitude update (or vice versa)
-// used to prevent unbounded recursion wherein we update attitude and throttle repeatedly forever
+// ("structurally recursive" in first_call)
 void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool first_call) {
   // for testing
   // first_call = false;
+
+  // ensure we don't print too often
+  static int printerval = -1;
+  printerval++;
+  if (printerval == PRINTERVAL) printerval = 0;
 
   // Keep around two old sets of params:
   // One for most recently called attitude function
@@ -43,17 +49,14 @@ void AC_AttitudeShim::attitude_shim_entry_point(Att_shim_params params, bool fir
     false // NOT yet initialized
   };
 
-  // ensure we don't print too often
-  static int printerval = -1;
-  printerval++;
-  if (printerval == PRINTERVAL) printerval = 0;
+
 
   // track stats on the last attitude/throttle calls
   static int attitude_calls = 0;
   static int throttle_calls = 0;
 
   if (params.which_fn == THROTTLE_SET) {
-	  // iprintf("Throttle set to %d\n", params.throttle);
+    // iprintf("Throttle set to %d\n", params.throttle);
     // throttle_calls++;
     // iprintf("Total throttle calls: %d\n", throttle_calls);
     // iprintf("Total attitude calls: %d\n\n", attitude_calls);
