@@ -227,7 +227,7 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   _stats.safe_y_vel_ub = safe_check_y.vel_ub;
   _stats.safe_y_vel_lb = safe_check_y.vel_lb;
   _stats.safe_y_pos_ub = safe_check_y.pos_ub;
-  _stats.safe_y_pos_lb = safe_check_y.pos_ub;
+  _stats.safe_y_pos_lb = safe_check_y.pos_lb;
   _stats.Theta_bound_check = Theta_bound_check;
 
   return res;
