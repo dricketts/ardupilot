@@ -491,13 +491,31 @@
     <!-- message for shim to report back its status -->
     <message name="SHIM_STATS" id="232">
       <description>Statistics of the shim sent from the vehicle to the GCS</description>
-      <field type="float" name="percent_rejected">The percentage of iterations in the last window_time milliseconds that the verified shim rejected the proposed acceleration and issued its own.</field>
-      <field type="float" name="avg_accel_diff">The average difference in the last window_time milliseconds between proposed acceleration and the acceleration issued by the verified shim.</field>
-      <field type="uint8_t" name="set_motors_from_acc_failed">1 if set_motors_from_acc failed since the last time this message was sent. 0 otherwise.</field>
-      <field type="float" name="x_position">The value of x, relative to starting position.</field>
-      <field type="float" name="height">The height, relative to starting position.</field>
-      <field type="float" name="vel_x">The velocity in the x direction.</field>
-      <field type="float" name="vel_vertical">The velocity in the vertical direction.</field>
+      <field type="float" name="x">The value of x, relative to starting position.</field>
+      <field type="float" name="y">The height, relative to starting position.</field>
+      <field type="float" name="vx">The velocity in the x direction.</field>
+      <field type="float" name="vy">The velocity in the vertical direction.</field>
+      <field type="float" name="A">The proposed acceleration, normal to the quadcopter.</field>
+      <field type="float" name="Theta">The proposed angle</field>
+      <field type="float" name="a">The issued acceleration, normal to the quadcopter.</field>
+      <field type="float" name="theta">The issued angle</field>
+      <field type="float" name="AX">The proposed X acceleration.</field>
+      <field type="float" name="AY">The proposed Y acceleration.</field>
+      <field type="float" name="ax">The x acceleration.</field>
+      <field type="float" name="ay">The vertical acceleration.</field>
+      <field type="float" name="amin_x">The breaking acceleration for x.</field>
+      <field type="float" name="amin_y">The breaking acceleration for y.</field>
+      <field type="uint8_t" name="safe_x">Whether or not the safety check passed for the X direction.</field>
+      <field type="uint8_t" name="safe_y">Whether or not the safety check passed for the Y direction.</field>
+      <field type="uint8_t" name="safe_x_vel_ub">Whether or not the safety check passed for the upper bound of velocity in the X direction.</field>
+      <field type="uint8_t" name="safe_x_vel_lb">Whether or not the safety check passed for the lower bound of velocity in the X direction.</field>
+      <field type="uint8_t" name="safe_x_pos_ub">Whether or not the safety check passed for the upper bound of position in the X direction.</field>
+      <field type="uint8_t" name="safe_x_pos_lb">Whether or not the safety check passed for the lower bound of position in the X direction.</field>
+      <field type="uint8_t" name="safe_y_vel_ub">Whether or not the safety check passed for the upper bound of velocity in the Y direction.</field>
+      <field type="uint8_t" name="safe_y_vel_lb">Whether or not the safety check passed for the lower bound of velocity in the Y direction.</field>
+      <field type="uint8_t" name="safe_y_pos_ub">Whether or not the safety check passed for the upper bound of position in the Y direction.</field>
+      <field type="uint8_t" name="safe_y_pos_lb">Whether or not the safety check passed for the lower bound of position in the Y direction.</field>
+      <field type="uint8_t" name="Theta_bound_check">Whether or not the safety check passed for the proposed angle.</field>
     </message>
 
      </messages>

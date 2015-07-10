@@ -25,6 +25,13 @@ struct state {
   float vy;
 };
 
+struct safety_check {
+  bool vel_ub;
+  bool vel_lb;
+  bool pos_ub;
+  bool pos_lb;
+};
+
 class BoxShim : public AC_AttitudeShim {
  public:
   BoxShim(AP_AHRS &ahrs,
@@ -69,8 +76,8 @@ class BoxShim : public AC_AttitudeShim {
   /*
    * Runs the safety check in one dimension
    */
-  bool safe_acc(float a, float v, float y,
-		float ub, float ubv, float amin);
+  safety_check safe_acc(float a, float v, float y,
+			float ub, float ubv, float amin);
 
   /*
    * Returns the default action for the position

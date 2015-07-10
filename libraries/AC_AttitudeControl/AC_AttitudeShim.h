@@ -34,9 +34,31 @@ enum Att_shim_fn {ATT_SET_SMOOTH, ATT_SET, ATT_SET_SLEW, ATT_SET_RATES, ATT_SET_
 // we'll also reset everything to zero
 // when the stats are requested
 struct shim_stats {
-    float percent_rejected;
-    float avg_accel_diff;
-    bool set_motors_from_acc_failed;
+	float x;
+    float y;
+    float vx;
+    float vy;
+    float A;
+    float Theta;
+    float a;
+    float theta;
+    float AX;
+    float AY;
+    float ax;
+    float ay;
+    float amin_x;
+    float amin_y;
+    bool safe_x;
+    bool safe_y;
+    bool safe_x_vel_ub;
+    bool safe_x_vel_lb;
+    bool safe_x_pos_ub;
+    bool safe_x_pos_lb;
+    bool safe_y_vel_ub;
+    bool safe_y_vel_lb;
+    bool safe_y_pos_ub;
+    bool safe_y_pos_lb;
+    bool Theta_bound_check;
 };
 
 
@@ -158,20 +180,7 @@ public:
     //
     // Stats Reporing (Accessor)
     //
-    shim_stats get_shim_stats() {
-        shim_stats stats;
-        if (_count > 0) {
-            float fcount = _count;
-            stats.percent_rejected = _rejected_sum/fcount;
-            stats.avg_accel_diff = _accel_diff_sum/fcount;
-            stats.set_motors_from_acc_failed = _set_motors_from_acc_failed;
-            _count = 0;
-            _rejected_sum = 0;
-            _accel_diff_sum = 0;
-            _set_motors_from_acc_failed = false;
-        }
-        return stats;
-    }
+    shim_stats get_shim_stats() {return _stats;}
 
 protected:
 
@@ -184,16 +193,6 @@ protected:
   //
   // Member Variables
   //
-
-  // for stats reporting
-  // number of controller runs
-  uint32_t _count;
-  // how many proposed attitudes were rejected
-  uint32_t _rejected_sum;
-  // sum of differences in acceleration between proposed and actual
-  float _accel_diff_sum;
-  // did we fail to reset motor accelerations?
-  bool _set_motors_from_acc_failed;
 
   // for actual shim
   // is the shim on?
@@ -218,6 +217,7 @@ protected:
   float _abraking;
   float _mid_throttle;
 
+  shim_stats _stats;
 
   // Entry point of shim; shimmed-over functions call into this
   virtual void attitude_shim_entry_point(Att_shim_params params, bool first_call);
