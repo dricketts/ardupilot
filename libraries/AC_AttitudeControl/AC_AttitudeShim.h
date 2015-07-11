@@ -150,6 +150,10 @@ public:
     void enable_shim() {_shim_on = true;}
     void disable_shim() {_shim_on = false;}
 
+		// get/set "something bad" flag
+		void set_something_bad(bool b) {_something_bad = b;}
+		bool get_something_bad() {return _something_bad;}
+
     // set shim bounding parameters
     void set_h_ub(float b) {_h_ub = b;}
     void set_h_lb(float b) {_h_lb = b;}
@@ -197,6 +201,8 @@ protected:
   // for actual shim
   // is the shim on?
   bool _shim_on;
+	// is our "something bad happened" flag set?
+	bool _something_bad;
   // delay associated with actuators
   const float _d_ctrl;
   // height bounds

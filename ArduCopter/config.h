@@ -282,7 +282,8 @@
 //
 
 #ifndef CH7_OPTION
- # define CH7_OPTION            AUX_SWITCH_DO_NOTHING
+ //# define CH7_OPTION            AUX_SWITCH_DO_NOTHING
+ #define CH7_OPTION               AUX_SWITCH_BADTHING
 #endif
 
 #ifndef CH8_OPTION

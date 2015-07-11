@@ -117,7 +117,7 @@ static NOINLINE void send_heartbeat(mavlink_channel_t chan)
 static NOINLINE void send_shim_status(mavlink_channel_t chan)
 {
 #if SHIM
-    mavlink_msg_shim_enable_disable_send(chan, attitude_control.shim_on() ? 1 : 0); //do i need the ? : operator
+    mavlink_msg_shim_enable_disable_send(chan, attitude_control.shim_on() ? 1 : 0, attitude_control.get_something_bad() ? 1 : 0); //do i need the ? : operator
     mavlink_msg_shim_params_send(chan,
                                  attitude_control.h_ub(),
                                  attitude_control.h_lb(),
