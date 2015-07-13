@@ -38,6 +38,8 @@ struct shim_stats {
     float y;
     float vx;
     float vy;
+	uint16_t throttle;
+	bool angle_boost;
     float A;
     float Theta;
     float a;

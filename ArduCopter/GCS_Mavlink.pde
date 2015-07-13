@@ -137,6 +137,8 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                 stats.y,
                                 stats.vx,
                                 stats.vy,
+                                stats.throttle,
+                                stats.angle_boost,
                                 stats.A,
                                 stats.Theta,
                                 stats.a,

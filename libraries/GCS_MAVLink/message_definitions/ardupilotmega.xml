@@ -495,6 +495,8 @@
       <field type="float" name="y">The height, relative to starting position.</field>
       <field type="float" name="vx">The velocity in the x direction.</field>
       <field type="float" name="vy">The velocity in the vertical direction.</field>
+      <field type="uint16_t" name="throttle">The proposed throttle received by the shim</field>
+      <field type="uint8_t" name="angle_boost">1 if angle boost was requested, 0 otherwise</field>
       <field type="float" name="A">The proposed acceleration, normal to the quadcopter.</field>
       <field type="float" name="Theta">The proposed angle</field>
       <field type="float" name="a">The issued acceleration, normal to the quadcopter.</field>

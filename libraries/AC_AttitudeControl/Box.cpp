@@ -204,10 +204,10 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   }
 
   // Set all the statistics
-  _stats.x = x;
-  _stats.y = y;
-  _stats.vx = vx;
-  _stats.vy = vy;
+  _stats.x = st.x;
+  _stats.y = st.y;
+  _stats.vx = st.vx;
+  _stats.vy = st.vy;
   _stats.A = A;
   _stats.Theta = Theta;
   _stats.a = res.a;
@@ -270,45 +270,45 @@ void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call)
 
   //_params = {-500.0f, 10000.0f, -10000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
 
-  if (shim_on()) {
-    static float roll = 0.0f;
-    static int16_t throttle = 0;
+  static float roll = 0.0f;
+  static int16_t throttle = 0;
 
-    switch (params.which_fn) {
+  switch (params.which_fn) {
 
-    case THROTTLE_SET:
+  case THROTTLE_SET:
 
-      throttle = params.throttle;
+    throttle = params.throttle;
 
-      break;
+    break;
     
-    default:
+  default:
 
-      roll = params.roll;
+    roll = params.roll;
 
-    }
+  }
 
-    control_in proposed;
-    proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
-    proposed.a =
-      get_acc_from_throttle(params.angle_boost ?
-			    get_angle_boost(throttle + 0.0f) :
-			    throttle + 0.0f);
+  control_in proposed;
+  proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
+  proposed.a =
+    get_acc_from_throttle(params.angle_boost ?
+			  get_angle_boost(throttle + 0.0f) :
+			  throttle + 0.0f);
 
-    state st;
-    st.x = get_x();
-    st.y = get_y();
-    st.vx = get_vx();
-    st.vy = get_vy();
+  _stats.throttle = throttle;
+  _stats.angle_boost = params.angle_boost;
 
-    control_in safe = monitor(proposed, st);
+  state st;
+  st.x = get_x();
+  st.y = get_y();
+  st.vx = get_vx();
+  st.vy = get_vy();
 
-    if (safe.updated) {
-      params.roll = degrees(safe.theta)*100.0f;
-      params.throttle = get_throttle_from_acc(safe.a);
-      params.angle_boost = false;
-    }
+  control_in safe = monitor(proposed, st);
 
+  if (shim_on() && safe.updated) {
+    params.roll = degrees(safe.theta)*100.0f;
+    params.throttle = get_throttle_from_acc(safe.a);
+    params.angle_boost = false;
   }
 
   AC_AttitudeShim::attitude_shim_entry_point(params, first_call);
