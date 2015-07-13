@@ -133,6 +133,7 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 
     shim_stats stats = attitude_control.get_shim_stats();
     mavlink_msg_shim_stats_send(chan,
+                                stats.something_weird,
                                 stats.x,
                                 stats.y,
                                 stats.vx,

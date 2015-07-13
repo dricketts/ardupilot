@@ -58,6 +58,7 @@
 #define AUX_SWITCH_RETRACT_MOUNT    27      // Retract Mount
 #define AUX_SWITCH_RELAY            28      // Relay pin on/off (only supports first relay)
 #define AUX_SWITCH_SHIM             29      // Shim on/off
+#define AUX_SWITCH_WEIRD            30      // Something weird happened
 
 // values used by the ap.ch7_opt and ap.ch8_opt flags
 #define AUX_SWITCH_LOW              0       // indicates auxiliar switch is in the low position (pwm <1200)

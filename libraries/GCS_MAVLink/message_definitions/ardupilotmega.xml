@@ -491,6 +491,7 @@
     <!-- message for shim to report back its status -->
     <message name="SHIM_STATS" id="232">
       <description>Statistics of the shim sent from the vehicle to the GCS</description>
+      <field type="uint8_t" name="something_weird">1 if something weird happened, 0 otherwise</field>
       <field type="float" name="x">The value of x, relative to starting position.</field>
       <field type="float" name="y">The height, relative to starting position.</field>
       <field type="float" name="vx">The velocity in the x direction.</field>

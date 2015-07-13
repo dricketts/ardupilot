@@ -34,6 +34,7 @@ enum Att_shim_fn {ATT_SET_SMOOTH, ATT_SET, ATT_SET_SLEW, ATT_SET_RATES, ATT_SET_
 // we'll also reset everything to zero
 // when the stats are requested
 struct shim_stats {
+	bool something_weird;
 	float x;
     float y;
     float vx;
@@ -151,6 +152,9 @@ public:
     // enable/disable shim
     void enable_shim() {_shim_on = true;}
     void disable_shim() {_shim_on = false;}
+
+	// Indicate whether something weird has happened
+	void something_weird(bool weird) {_stats.something_weird = weird;}
 
     // set shim bounding parameters
     void set_h_ub(float b) {_h_ub = b;}

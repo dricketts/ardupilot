@@ -462,6 +462,22 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
               }
       #endif
       break;
+
+      case AUX_SWITCH_WEIRD:
+      #if SHIM
+              switch (ch_flag) {
+                  case AUX_SWITCH_LOW:
+                      attitude_control.something_weird(false);
+                      break;
+                  case AUX_SWITCH_MIDDLE:
+                      attitude_control.something_weird(false);
+                      break;
+                  case AUX_SWITCH_HIGH:
+                      attitude_control.something_weird(true);
+                      break;
+              }
+      #endif
+      break;
     }
 }
 
