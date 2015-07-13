@@ -2,7 +2,6 @@
 #include "AC_AttitudeControl.h"
 #include "AC_AttitudeShim.h"
 #include "AP_Math.h"
-#include <time.h>
 
 extern const AP_HAL::HAL& hal;
 
