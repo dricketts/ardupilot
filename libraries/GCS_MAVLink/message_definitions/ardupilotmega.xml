@@ -502,8 +502,8 @@
       <field type="float" name="Theta_proposed">The proposed angle</field>
       <field type="float" name="a">The issued acceleration, normal to the quadcopter.</field>
       <field type="float" name="theta">The issued angle</field>
-      <field type="float" name="AX">The proposed X acceleration.</field>
-      <field type="float" name="AY">The proposed Y acceleration.</field>
+      <field type="float" name="AX_proposed">The proposed X acceleration.</field>
+      <field type="float" name="AY_proposed">The proposed Y acceleration.</field>
       <field type="float" name="ax">The x acceleration.</field>
       <field type="float" name="ay">The vertical acceleration.</field>
       <field type="float" name="amin_x">The breaking acceleration for x.</field>
@@ -518,7 +518,7 @@
       <field type="uint8_t" name="safe_y_vel_lb">Whether or not the safety check passed for the lower bound of velocity in the Y direction.</field>
       <field type="uint8_t" name="safe_y_pos_ub">Whether or not the safety check passed for the upper bound of position in the Y direction.</field>
       <field type="uint8_t" name="safe_y_pos_lb">Whether or not the safety check passed for the lower bound of position in the Y direction.</field>
-      <field type="uint8_t" name="Theta_bound_check">Whether or not the safety check passed for the proposed angle.</field>
+      <field type="uint8_t" name="Theta_proposed_bound_check">Whether or not the safety check passed for the proposed angle.</field>
     </message>
 
      </messages>
