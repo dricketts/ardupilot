@@ -155,7 +155,8 @@ public:
     void enable_shim() {_shim_on = true;}
     void disable_shim() {_shim_on = false;}
 
-	void set_smooth(bool smooth) {_smooth = smooth;}
+	void set_smooth1(bool smooth) {_smooth1 = smooth;}
+	void set_smooth2(bool smooth) {_smooth2 = smooth;}
 
 	// Indicate whether something weird has happened
 	void something_weird(bool weird) {_stats.something_weird = weird;}
@@ -175,7 +176,8 @@ public:
 
     // get shim information
     bool shim_on() {return _shim_on;}
-	bool smooth() {return _smooth;}
+	bool smooth1() {return _smooth1;}
+	bool smooth2() {return _smooth2;}
     float h_ub() {return _h_ub;}
     float h_lb() {return _h_lb;}
     float hprime_ub() {return _hprime_ub;}
@@ -208,7 +210,8 @@ protected:
   // for actual shim
   // is the shim on?
   bool _shim_on;
-  bool _smooth;
+  bool _smooth1;
+  bool _smooth2;
   // delay associated with actuators
   const float _d_ctrl;
   // height bounds
