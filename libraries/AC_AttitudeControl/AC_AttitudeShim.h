@@ -47,6 +47,8 @@ struct shim_stats {
     float theta;
     float AX;
     float AY;
+	float AX_check;
+	float AY_check;
     float ax;
     float ay;
     float amin_x;
@@ -153,6 +155,8 @@ public:
     void enable_shim() {_shim_on = true;}
     void disable_shim() {_shim_on = false;}
 
+	void set_smooth(bool smooth) {_smooth = smooth;}
+
 	// Indicate whether something weird has happened
 	void something_weird(bool weird) {_stats.something_weird = weird;}
 
@@ -171,6 +175,7 @@ public:
 
     // get shim information
     bool shim_on() {return _shim_on;}
+	bool smooth() {return _smooth;}
     float h_ub() {return _h_ub;}
     float h_lb() {return _h_lb;}
     float hprime_ub() {return _hprime_ub;}
@@ -203,6 +208,7 @@ protected:
   // for actual shim
   // is the shim on?
   bool _shim_on;
+  bool _smooth;
   // delay associated with actuators
   const float _d_ctrl;
   // height bounds

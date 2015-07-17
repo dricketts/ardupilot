@@ -32,6 +32,15 @@ struct safety_check {
   bool pos_lb;
 };
 
+struct monitor_check {
+  safety_check safe_x;
+  safety_check safe_y;
+  bool Theta_bound_check;
+  float ax;
+  float ay;
+  control_in cin;
+};
+
 class BoxShim : public AC_AttitudeShim {
  public:
   BoxShim(AP_AHRS &ahrs,
@@ -72,6 +81,23 @@ class BoxShim : public AC_AttitudeShim {
    * Runs the monitor, returning a safe control input.
    */
   control_in monitor(control_in proposed, state st);
+
+  /*
+   * Implements the actual monitor logic.
+   */
+  monitor_check monitor_logic(float AX, float AY, float Theta, float vx,
+			      float vy, float x, float y, float ubx,
+			      float ubvx, float uby, float ubvy);
+
+  /*
+   * Computes the maximum allowed acceleration.
+   */
+  float max_acc(float v, float ub, float amin);
+
+  /*
+   * Used by max_acc
+   */
+  float sqrt_expr(float v, float ub, float amin);
 
   /*
    * Runs the safety check in one dimension

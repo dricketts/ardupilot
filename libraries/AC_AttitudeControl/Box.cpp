@@ -135,6 +135,76 @@ safety_check BoxShim::safe_acc(float a, float v, float y,
 }
 
 /*
+ * Used by max_acc
+ */
+float BoxShim::sqrt_expr(float v, float ub, float amin) {
+  return amin*((amin*_d_ctrl*_d_ctrl) - (8*ub) + (4*v*_d_ctrl));
+}
+
+/*
+ * Computes the maximum allowed acceleration.
+ */
+float BoxShim::max_acc(float v, float ub, float amin) {
+  float sexpr = sqrt_expr(v,ub,amin);
+  if (sexpr >= 0) {
+    return (sqrt(sexpr) + (amin*_d_ctrl) - (2*v))/(2*_d_ctrl);
+  }
+  return 0;
+}
+
+/*
+ * Implements the actual monitor logic.
+ */
+monitor_check BoxShim::monitor_logic(float AX, float AY, float Theta, float vx,
+				     float vy, float x, float y, float ubx,
+				     float ubvx, float uby, float ubvy) {
+  safety_check safe_check_x = safe_acc(AX, vx, x, ubx, ubvx, amin_X());
+  bool safe_x = all_safe(safe_check_x);
+  safety_check safe_check_y = safe_acc(AY, vy, y, uby, ubvy, amin_Y());
+  bool safe_y = all_safe(safe_check_y);
+  bool Theta_bound_check = roll_lb() <= Theta && Theta <= -roll_lb();
+
+  monitor_check res;
+  res.safe_x = safe_check_x;
+  res.safe_y = safe_check_y;
+  res.Theta_bound_check = Theta_bound_check;
+
+  // Issue the proposed signal if it passes
+  // all safety checks, otherwise issue the default
+  if (safe_x && safe_y && Theta_bound_check) {
+    res.ax = AX;
+    res.ay = AY;
+
+    res.cin.updated = false;
+  } else if (safe_x && amin_X() <= AX && AX <= -amin_X()) {
+    res.ax = AX;
+    res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+
+    res.cin = rect_to_polar(res.ay + gravity, AX);
+    res.cin.updated = true;
+  } else if (safe_y && amin_Y() <= AY && AY <= -amin_Y()) {
+    res.ax = default_rect_action_one_dim(x, vx, amin_X());
+    res.ay = AY;
+
+    res.cin = rect_to_polar(AY + gravity, res.ax);
+    res.cin.updated = true;
+  } else {
+
+    res.ax = default_rect_action_one_dim(x, vx, amin_X());
+    res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+
+    // We are rotated 90 degrees, so we reverse the arguments
+    // We also account for gravity in the y direction
+    res.cin = rect_to_polar(res.ay + gravity, res.ax);
+
+    //    control_in res = default_action(x, y, vx, vy);
+    res.cin.updated = true;
+  }
+
+  return res;
+}
+
+/*
  * Runs the monitor, returning a safe control input.
  */
 control_in BoxShim::monitor(control_in proposed, state st) {
@@ -148,6 +218,11 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float ubvy = hprime_ub();
   float lbvy = hprime_lb();
 
+  float shifted_ubx = bound_shift(ubx,lbx);
+  float shifted_ubvx = bound_shift(ubvx,lbvx);
+  float shifted_uby = bound_shift(uby,lby);
+  float shifted_ubvy = bound_shift(ubvy,lbvy);
+
   float x = st.x+shift(ubx,lbx);
   float y = st.y+shift(uby,lby);
   float vx = st.vx+shift(ubvx,lbvx);
@@ -156,50 +231,18 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float Theta = proposed.theta;
   float AX = A*sin(Theta);
   float AY = A*cos(Theta)-gravity;
-  float ax;
-  float ay;
 
-  safety_check safe_check_x = safe_acc(AX, vx, x, bound_shift(ubx,lbx),
-				       bound_shift(ubvx,lbvx), amin_X());
-  bool safe_x = all_safe(safe_check_x);
-  safety_check safe_check_y = safe_acc(AY, vy, y, bound_shift(uby,lby),
-				       bound_shift(ubvy,lbvy), amin_Y());
-  bool safe_y = all_safe(safe_check_y);
-  bool Theta_bound_check = roll_lb() <= Theta && Theta <= -roll_lb();
+  float AX_check = AX;
+  float AY_check = AY;
+  if (smooth()) {
+    // do some stuff
+  }
 
-  control_in res;
-
-  // Issue the proposed signal if it passes
-  // all safety checks, otherwise issue the default
-  if (safe_x && safe_y && Theta_bound_check) {
-    ax = AX;
-    ay = AY;
-
-    res = proposed;
-    res.updated = false;
-  } else if (safe_x && amin_X() <= AX && AX <= -amin_X()) {
-    ax = AX;
-    ay = default_rect_action_one_dim(y, vy, amin_Y());
-
-    res = rect_to_polar(ay + gravity, AX);
-    res.updated = true;
-  } else if (safe_y && amin_Y() <= AY && AY <= -amin_Y()) {
-    ax = default_rect_action_one_dim(x, vx, amin_X());
-    ay = AY;
-
-    res = rect_to_polar(AY + gravity, ax);
-    res.updated = true;
-  } else {
-
-    ax = default_rect_action_one_dim(x, vx, amin_X());
-    ay = default_rect_action_one_dim(y, vy, amin_Y());
-
-    // We are rotated 90 degrees, so we reverse the arguments
-    // We also account for gravity in the y direction
-    res = rect_to_polar(ay + gravity, ax);
-
-    //    control_in res = default_action(x, y, vx, vy);
-    res.updated = true;
+  monitor_check res = monitor_logic(AX_check, AY_check, Theta, vx, vy, x, y, shifted_ubx,
+				    shifted_ubvx, shifted_uby, shifted_ubvy);
+  if (res.cin.updated == false) {
+    res.cin.a = proposed.a;
+    res.cin.theta = proposed.theta;
   }
 
   // Set all the statistics
@@ -209,27 +252,29 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   _stats.vy = st.vy;
   _stats.A = A;
   _stats.Theta = Theta;
-  _stats.a = res.a;
-  _stats.theta = res.theta;
+  _stats.a = res.cin.a;
+  _stats.theta = res.cin.theta;
   _stats.AX = AX;
   _stats.AY = AY;
-  _stats.ax = ax;
-  _stats.ay = ay;
+  _stats.AX_check = AX_check;
+  _stats.AY_check = AY_check;
+  _stats.ax = res.ax;
+  _stats.ay = res.ay;
   _stats.amin_x = amin_X();
   _stats.amin_y = amin_Y();
-  _stats.safe_x = safe_x;
-  _stats.safe_y = safe_y;
-  _stats.safe_x_vel_ub = safe_check_x.vel_ub;
-  _stats.safe_x_vel_lb = safe_check_x.vel_lb;
-  _stats.safe_x_pos_ub = safe_check_x.pos_ub;
-  _stats.safe_x_pos_lb = safe_check_x.pos_lb;
-  _stats.safe_y_vel_ub = safe_check_y.vel_ub;
-  _stats.safe_y_vel_lb = safe_check_y.vel_lb;
-  _stats.safe_y_pos_ub = safe_check_y.pos_ub;
-  _stats.safe_y_pos_lb = safe_check_y.pos_lb;
-  _stats.Theta_bound_check = Theta_bound_check;
+  _stats.safe_x = all_safe(res.safe_x);
+  _stats.safe_y = all_safe(res.safe_y);
+  _stats.safe_x_vel_ub = res.safe_x.vel_ub;
+  _stats.safe_x_vel_lb = res.safe_x.vel_lb;
+  _stats.safe_x_pos_ub = res.safe_x.pos_ub;
+  _stats.safe_x_pos_lb = res.safe_x.pos_lb;
+  _stats.safe_y_vel_ub = res.safe_y.vel_ub;
+  _stats.safe_y_vel_lb = res.safe_y.vel_lb;
+  _stats.safe_y_pos_ub = res.safe_y.pos_ub;
+  _stats.safe_y_pos_lb = res.safe_y.pos_lb;
+  _stats.Theta_bound_check = res.Theta_bound_check;
 
-  return res;
+  return res.cin;
 }
 
 float BoxShim::get_x() {
