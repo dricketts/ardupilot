@@ -87,17 +87,32 @@ class BoxShim : public AC_AttitudeShim {
    */
   monitor_check monitor_logic(float AX, float AY, float Theta, float vx,
 			      float vy, float x, float y, float ubx,
-			      float ubvx, float uby, float ubvy);
+			      float ubvx, float uby, float ubvy, bool update_polar);
 
   /*
-   * Computes the maximum allowed acceleration.
+   * Computes the maximum allowed acceleration by the velocity shim
    */
-  float max_acc(float v, float ub, float amin);
+  float max_acc_velocity(float v, float ub);
 
   /*
-   * Used by max_acc
+   * Computes the maximum allowed acceleration by the position shim
    */
-  float sqrt_expr(float v, float ub, float amin);
+  float max_acc_position(float y, float v, float ub, float amin);
+
+  /*
+   * Computes the maximum allowed acceleration by the velocity shim
+   */
+  float min_acc_velocity(float v, float ub);
+
+  /*
+   * Computes the maximum allowed acceleration by the position shim
+   */
+  float min_acc_position(float y, float v, float ub, float amin);
+
+  /*
+   * Used by max_acc_position and min_acc_position
+   */
+  float sqrt_expr(float y, float v, float ub, float amin);
 
   /*
    * Runs the safety check in one dimension

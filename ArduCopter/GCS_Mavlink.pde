@@ -147,6 +147,8 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                 stats.theta,
                                 stats.AX,
                                 stats.AY,
+                                stats.AX_check,
+                                stats.AY_check,
                                 stats.ax,
                                 stats.ay,
                                 stats.amin_x,

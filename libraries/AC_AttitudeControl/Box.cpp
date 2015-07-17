@@ -137,15 +137,15 @@ safety_check BoxShim::safe_acc(float a, float v, float y,
 /*
  * Used by max_acc
  */
-float BoxShim::sqrt_expr(float v, float ub, float amin) {
-  return amin*((amin*_d_ctrl*_d_ctrl) - (8*ub) + (4*v*_d_ctrl));
+float BoxShim::sqrt_expr(float y, float v, float ub, float amin) {
+  return amin*((amin*_d_ctrl*_d_ctrl) - (8*ub) + (4*v*_d_ctrl) + (8*y));
 }
 
 /*
- * Computes the maximum allowed acceleration.
+ * Computes the maximum allowed acceleration by the position shim.
  */
-float BoxShim::max_acc(float v, float ub, float amin) {
-  float sexpr = sqrt_expr(v,ub,amin);
+float BoxShim::max_acc_position(float y, float v, float ub, float amin) {
+  float sexpr = sqrt_expr(y,v,ub,amin);
   if (sexpr >= 0) {
     return (sqrt(sexpr) + (amin*_d_ctrl) - (2*v))/(2*_d_ctrl);
   }
@@ -153,11 +153,36 @@ float BoxShim::max_acc(float v, float ub, float amin) {
 }
 
 /*
+ * Computes the maximum allowed acceleration by the velocity shim
+ */
+float BoxShim::max_acc_velocity(float v, float ub) {
+  return (ub-v)/_d_ctrl;
+}
+
+/*
+ * Computes the maximum allowed acceleration by the position shim.
+ */
+float BoxShim::min_acc_position(float y, float v, float ub, float amin) {
+  float sexpr = sqrt_expr(-y,-v,ub,amin);
+  if (sexpr >= 0) {
+    return (sqrt(sexpr) - (amin*_d_ctrl) - (2*v))/(2*_d_ctrl);
+  }
+  return 0;
+}
+
+/*
+ * Computes the maximum allowed acceleration by the velocity shim
+ */
+float BoxShim::min_acc_velocity(float v, float ub) {
+  return (-ub-v)/_d_ctrl;
+}
+
+/*
  * Implements the actual monitor logic.
  */
 monitor_check BoxShim::monitor_logic(float AX, float AY, float Theta, float vx,
 				     float vy, float x, float y, float ubx,
-				     float ubvx, float uby, float ubvy) {
+				     float ubvx, float uby, float ubvy, bool update_polar) {
   safety_check safe_check_x = safe_acc(AX, vx, x, ubx, ubvx, amin_X());
   bool safe_x = all_safe(safe_check_x);
   safety_check safe_check_y = safe_acc(AY, vy, y, uby, ubvy, amin_Y());
@@ -175,7 +200,12 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float Theta, float vx,
     res.ax = AX;
     res.ay = AY;
 
-    res.cin.updated = false;
+    if (update_polar) {
+      res.cin = rect_to_polar(AY + gravity, AX);
+      res.cin.updated = true;
+    } else {
+      res.cin.updated = false;
+    }
   } else if (safe_x && amin_X() <= AX && AX <= -amin_X()) {
     res.ax = AX;
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
@@ -235,11 +265,19 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float AX_check = AX;
   float AY_check = AY;
   if (smooth()) {
-    // do some stuff
+    AX_check = constrain_float(AX_check, min_acc_position(x, vx, shifted_ubx, amin_X()),
+			       max_acc_position(x, vx, shifted_ubx, amin_X()));
+    AX_check = constrain_float(AX_check, min_acc_velocity(vx, shifted_ubvx,),
+			       max_acc_velocity(vx, shifted_ubvx));
+    AY_check = constrain_float(AY_check, min_acc_position(y, vy, shifted_uby, amin_Y()),
+			       max_acc_position(y, vy, shifted_uby, amin_Y()));
+    AY_check = constrain_float(AY_check, min_acc_velocity(vy, shifted_ubvy,),
+			       max_acc_velocity(vy, shifted_ubvy));
   }
 
   monitor_check res = monitor_logic(AX_check, AY_check, Theta, vx, vy, x, y, shifted_ubx,
-				    shifted_ubvx, shifted_uby, shifted_ubvy);
+				    shifted_ubvx, shifted_uby, shifted_ubvy,
+				    AX_check != AX || AY_check != AY);
   if (res.cin.updated == false) {
     res.cin.a = proposed.a;
     res.cin.theta = proposed.theta;

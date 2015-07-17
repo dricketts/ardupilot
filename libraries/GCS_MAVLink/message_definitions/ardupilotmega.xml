@@ -505,6 +505,8 @@
       <field type="float" name="theta">The issued angle</field>
       <field type="float" name="AX_proposed">The proposed X acceleration.</field>
       <field type="float" name="AY_proposed">The proposed Y acceleration.</field>
+      <field type="float" name="AX_check">The actually checked X acceleration.</field>
+      <field type="float" name="AY_check">The actually checked Y acceleration.</field>
       <field type="float" name="ax">The x acceleration.</field>
       <field type="float" name="ay">The vertical acceleration.</field>
       <field type="float" name="amin_x">The breaking acceleration for x.</field>
