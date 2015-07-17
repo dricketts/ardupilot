@@ -267,11 +267,11 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   if (smooth()) {
     AX_check = constrain_float(AX_check, min_acc_position(x, vx, shifted_ubx, amin_X()),
 			       max_acc_position(x, vx, shifted_ubx, amin_X()));
-    AX_check = constrain_float(AX_check, min_acc_velocity(vx, shifted_ubvx,),
+    AX_check = constrain_float(AX_check, min_acc_velocity(vx, shifted_ubvx),
 			       max_acc_velocity(vx, shifted_ubvx));
     AY_check = constrain_float(AY_check, min_acc_position(y, vy, shifted_uby, amin_Y()),
 			       max_acc_position(y, vy, shifted_uby, amin_Y()));
-    AY_check = constrain_float(AY_check, min_acc_velocity(vy, shifted_ubvy,),
+    AY_check = constrain_float(AY_check, min_acc_velocity(vy, shifted_ubvy),
 			       max_acc_velocity(vy, shifted_ubvy));
   }
 
