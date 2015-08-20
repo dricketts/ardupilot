@@ -473,6 +473,7 @@
     <message name="SHIM_PARAMS" id="231">
       <description>Command to set various options of the shim</description>
       <field type="uint8_t" name="smooth">1 to enable smoothing, 0 to disable</field>
+      <field type="float" name="lookahead">lookahead factor for the smoothing shim</field>
       <field type="float" name="h_ub">the height upper bound of the shim in cm</field>
       <field type="float" name="h_lb">the height lower bound of the shim in cm</field>
       <field type="float" name="hprime_ub">the vertical velocity upper bound of the shim in cm/s</field>

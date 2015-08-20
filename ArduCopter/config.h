@@ -177,9 +177,11 @@
 #define SHIM_ROLL_LB -(M_PI + 0.0f)/4.0f // shim minimum roll attitude bound in ???
 #endif
 #ifndef SHIM_DELAY
-#define SHIM_DELAY 0.1
+#define SHIM_DELAY 0.01
 #endif
-// TODO - this is almost certainly not what we want
+#ifndef SHIM_LOOKAHEAD
+#define SHIM_LOOKAHEAD 100.0f
+#endif
 #ifndef SHIM_ABRAKING
 #define SHIM_ABRAKING -500.0f
 #endif

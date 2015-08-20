@@ -9,8 +9,6 @@ extern const AP_HAL::HAL& hal;
 
 #define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
 
-static float ub_buf = 100.0;
-
 /*
  * Distance traveled with initial velocity V,
  * acceleration a, for time t
@@ -139,29 +137,30 @@ safety_check BoxShim::safe_acc(float a, float v, float y,
 /*
  * Used by max_acc
  */
-float BoxShim::sqrt_expr(float y, float v, float ub, float amin) {
-  return (amin*_d_ctrl*_d_ctrl-2*v*_d_ctrl)*(amin*_d_ctrl*_d_ctrl-2*v*_d_ctrl) -
-    4*(-_d_ctrl*_d_ctrl)*(2*amin*y-2*amin*ub + 2*amin*v*_d_ctrl-v*v);
+float BoxShim::sqrt_expr(float y, float v, float ub, float amin, float d) {
+  return (amin*d*d-2*v*d)*(amin*d*d-2*v*d) -
+    4*(-d*d)*(2*amin*y-2*amin*ub + 2*amin*v*d-v*v);
 }
 
 /*
  * Computes the maximum allowed acceleration by the position shim.
  */
 float BoxShim::max_acc_position(float y, float v, float ub, float amin) {
-  float sexpr = sqrt_expr(y,v,ub,amin);
+  float d = _d_ctrl*lookahead();
+  float sexpr = sqrt_expr(y,v,ub,amin,d);
   if (sexpr >= 0) {
-    float bound = (-(amin*_d_ctrl*_d_ctrl-2*v*_d_ctrl) - sqrt(sexpr))/(2*-_d_ctrl*_d_ctrl);
-    if (-v/_d_ctrl <= bound) {
+    float bound = (-(amin*d*d-2*v*d) - sqrt(sexpr))/(2*-d*d);
+    if (-v/d <= bound) {
       return bound;
     } else if (0 < v && 2*(y-ub) != 0) {
       bound = v*v/(2*(y-ub));
-      if (bound <= -v/_d_ctrl) {
+      if (bound <= -v/d) {
 	return bound;
       } else {
-	return -v/_d_ctrl;
+	return -v/d;
       }
     } else {
-      return -v/_d_ctrl;
+      return -v/d;
     }
   }
   return default_rect_action_one_dim(y, v, amin);
@@ -171,7 +170,8 @@ float BoxShim::max_acc_position(float y, float v, float ub, float amin) {
  * Computes the maximum allowed acceleration by the velocity shim
  */
 float BoxShim::max_acc_velocity(float v, float ub) {
-  return (ub-v)/_d_ctrl;
+  float d = _d_ctrl*lookahead();
+  return (ub-v)/d;
 }
 
 /*
@@ -256,15 +256,15 @@ control_in BoxShim::monitor(control_in proposed, state st) {
 
   monitor_check res;
   if (smooth()) {
-    res.ax = constrain_float(AX, -max_acc_position(-x, -vx, shifted_ubx-ub_buf, amin_X()),
-			       max_acc_position(x, vx, shifted_ubx-ub_buf, amin_X()));
+    res.ax = constrain_float(AX, -max_acc_position(-x, -vx, shifted_ubx, amin_X()),
+			     max_acc_position(x, vx, shifted_ubx, amin_X()));
     res.ax = constrain_float(res.ax, -max_acc_velocity(-vx, shifted_ubvx),
-			       max_acc_velocity(vx, shifted_ubvx));
+			     max_acc_velocity(vx, shifted_ubvx));
     res.ax = constrain_float(res.ax, amin_X(), -amin_X());
-    res.ay = constrain_float(AY, -max_acc_position(-y, -vy, shifted_uby-ub_buf, amin_Y()),
-			       max_acc_position(y, vy, shifted_uby-ub_buf, amin_Y()));
+    res.ay = constrain_float(AY, -max_acc_position(-y, -vy, shifted_uby, amin_Y()),
+			     max_acc_position(y, vy, shifted_uby, amin_Y()));
     res.ay = constrain_float(res.ay, -max_acc_velocity(-vy, shifted_ubvy),
-			       max_acc_velocity(vy, shifted_ubvy));
+			     max_acc_velocity(vy, shifted_ubvy));
     res.ay = constrain_float(res.ay, amin_Y(), -amin_Y());
     if (res.ax != AX || res.ay != AY) {
       res.cin = rect_to_polar(res.ay + gravity, res.ax);

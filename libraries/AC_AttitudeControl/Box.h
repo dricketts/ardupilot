@@ -51,13 +51,13 @@ class BoxShim : public AC_AttitudeShim {
     const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
     const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
     const float roll_lb, const float abraking, const float mid_throttle,
-    const float d_ctrl,
+	  const float d_ctrl, const float lookahead,
 	  const AP_InertialNav& inav
 	  ) :
   AC_AttitudeShim(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
 		  pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw,
       h_ub, h_lb, hprime_ub, hprime_lb, x_ub, x_lb, xprime_ub, xprime_lb,
-		  roll_lb, abraking, mid_throttle, d_ctrl),
+		  roll_lb, abraking, mid_throttle, d_ctrl, lookahead),
     _inav(inav)
     {
     };
@@ -102,7 +102,7 @@ class BoxShim : public AC_AttitudeShim {
   /*
    * Used by max_acc_position and min_acc_position
    */
-  float sqrt_expr(float y, float v, float ub, float amin);
+  float sqrt_expr(float y, float v, float ub, float amin, float d);
 
   /*
    * Runs the safety check in one dimension

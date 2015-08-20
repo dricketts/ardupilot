@@ -103,13 +103,13 @@ public:
                         const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
                         const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
 				   const float roll_lb, const float abraking, const float mid_throttle,
-                        const float d_ctrl) :
+				   const float d_ctrl, const float lookahead) :
                         AC_AttitudeControl(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
                                            pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
                         _h_ub(h_ub), _h_lb(h_lb), _hprime_ub(hprime_ub), _hprime_lb(hprime_lb),
                         _x_ub(x_ub), _x_lb(x_lb), _xprime_ub(xprime_ub), _xprime_lb(xprime_lb),
                    	  _roll_lb(roll_lb), _abraking(abraking), _mid_throttle(mid_throttle),
-                        _d_ctrl(d_ctrl)
+                	  _d_ctrl(d_ctrl), _lookahead(lookahead)
     {
     };
 
@@ -172,6 +172,7 @@ public:
     void set_roll_lb(float r) {_roll_lb = r;}
     void set_abraking(float a) {_abraking = a;}
 	void set_mid_throttle(float t) {_mid_throttle = t;}
+	void set_lookahead(float x) {_lookahead = x;}
 
     // get shim information
     bool shim_on() {return _shim_on;}
@@ -187,6 +188,7 @@ public:
     float roll_lb() {return _roll_lb;}
     float abraking() {return _abraking;}
 	float mid_throttle() {return _mid_throttle;}
+	float lookahead() {return _lookahead;}
 
     //
     // Stats Reporing (Accessor)
@@ -228,6 +230,7 @@ protected:
   // braking acceleration for vertical dimension
   float _abraking;
   float _mid_throttle;
+  float _lookahead;
 
   shim_stats _stats;
 

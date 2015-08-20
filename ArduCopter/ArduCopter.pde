@@ -675,7 +675,7 @@ BoxShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_
                          SHIM_H_UB, SHIM_H_LB, SHIM_HPRIME_UB, SHIM_HPRIME_LB,
                          SHIM_X_UB, SHIM_X_LB, SHIM_XPRIME_UB, SHIM_XPRIME_LB,
                          SHIM_ROLL_LB, SHIM_ABRAKING, THROTTLE_CRUISE, SHIM_DELAY,
-                         inertial_nav);
+                         SHIM_LOOKAHEAD, inertial_nav);
 // #else
 // AC_AttitudeControl attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
 //                        g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
