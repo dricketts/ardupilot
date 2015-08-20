@@ -472,8 +472,7 @@
     -->
     <message name="SHIM_PARAMS" id="231">
       <description>Command to set various options of the shim</description>
-      <field type="uint8_t" name="smooth1">1 to enable smoothing (type 1), 0 to disable</field>
-      <field type="uint8_t" name="smooth2">1 to enable smoothing (type 2), 0 to disable</field>
+      <field type="uint8_t" name="smooth">1 to enable smoothing, 0 to disable</field>
       <field type="float" name="h_ub">the height upper bound of the shim in cm</field>
       <field type="float" name="h_lb">the height lower bound of the shim in cm</field>
       <field type="float" name="hprime_ub">the vertical velocity upper bound of the shim in cm/s</field>
@@ -506,8 +505,6 @@
       <field type="float" name="theta">The issued angle</field>
       <field type="float" name="AX_proposed">The proposed X acceleration.</field>
       <field type="float" name="AY_proposed">The proposed Y acceleration.</field>
-      <field type="float" name="AX_check">The actually checked X acceleration.</field>
-      <field type="float" name="AY_check">The actually checked Y acceleration.</field>
       <field type="float" name="ax">The x acceleration.</field>
       <field type="float" name="ay">The vertical acceleration.</field>
       <field type="float" name="amin_x">The breaking acceleration for x.</field>

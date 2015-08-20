@@ -119,8 +119,7 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 #if SHIM
     mavlink_msg_shim_enable_disable_send(chan, attitude_control.shim_on() ? 1 : 0); //do i need the ? : operator
     mavlink_msg_shim_params_send(chan,
-                                 attitude_control.smooth1(),
-                                 attitude_control.smooth2(),
+                                 attitude_control.smooth(),
                                  attitude_control.h_ub(),
                                  attitude_control.h_lb(),
                                  attitude_control.hprime_ub(),
@@ -148,8 +147,6 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                 stats.theta,
                                 stats.AX,
                                 stats.AY,
-                                stats.AX_check,
-                                stats.AY_check,
                                 stats.ax,
                                 stats.ay,
                                 stats.amin_x,
@@ -943,8 +940,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         // decode packet
         mavlink_shim_params_t packet;
         mavlink_msg_shim_params_decode(msg, &packet);
-        attitude_control.set_smooth1(packet.smooth1 == 1 ? true : false);
-        attitude_control.set_smooth2(packet.smooth2 == 1 ? true : false);
+        attitude_control.set_smooth(packet.smooth == 1 ? true : false);
         attitude_control.set_h_ub(packet.h_ub);
         attitude_control.set_h_lb(packet.h_lb);
         attitude_control.set_hprime_ub(packet.hprime_ub);
