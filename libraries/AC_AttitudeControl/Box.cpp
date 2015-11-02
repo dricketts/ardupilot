@@ -174,6 +174,39 @@ float BoxShim::max_acc_velocity(float v, float ub) {
   return (ub-v)/d;
 }
 
+bool BoxShim::ind_inv_acc(float y, float v, float ub, float amin) {
+  if (0 <= v) {
+    return y + sdist(v, amin) <= ub;
+  } else {
+    return y <= ub;
+  }
+}
+
+bool BoxShim::ind_inv_vel(float v, float ub) {
+  return v <= ub;
+}
+
+bool BoxShim::ind_inv(float vx, float vy, float x, float y, float ubx,
+		      float ubvx, float uby, float ubvy) {
+  return
+    ind_inv_acc(x, vx, ubx, amin_X()) &&
+    ind_inv_acc(-x, -vx, ubx, amin_X()) &&
+    ind_inv_acc(y, vy, uby, amin_Y()) &&
+    ind_inv_acc(-y, -vy, uby, amin_Y()) &&
+    ind_inv_vel(vx, ubvx) &&
+    ind_inv_vel(-vx, ubvx) &&
+    ind_inv_vel(vy, ubvy) &&
+    ind_inv_vel(-vy, ubvy);
+}
+
+bool BoxShim::can_run(state st) {
+  bounds shifted_bounds = shift_bounds();
+  state shifted_st = shift_state(st);
+  return ind_inv(shifted_st.vx, shifted_st.vy, shifted_st.x, shifted_st.y,
+		 shifted_bounds.ubx, shifted_bounds.ubvx, shifted_bounds.uby,
+		 shifted_bounds.ubvy);
+}
+
 /*
  * Implements the actual monitor logic.
  */
@@ -231,24 +264,18 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float Theta, float vx,
  */
 control_in BoxShim::monitor(control_in proposed, state st) {
 
-  float ubx = x_ub();
-  float lbx = x_lb();
-  float uby = h_ub();
-  float lby = h_lb();
-  float ubvx = xprime_ub();
-  float lbvx = xprime_lb();
-  float ubvy = hprime_ub();
-  float lbvy = hprime_lb();
+  bounds shifted_bounds = shift_bounds();
+  state shifted_st = shift_state(st);
 
-  float shifted_ubx = bound_shift(ubx,lbx);
-  float shifted_ubvx = bound_shift(ubvx,lbvx);
-  float shifted_uby = bound_shift(uby,lby);
-  float shifted_ubvy = bound_shift(ubvy,lbvy);
+  float shifted_ubx = shifted_bounds.ubx;
+  float shifted_ubvx = shifted_bounds.ubvx;
+  float shifted_uby = shifted_bounds.uby;
+  float shifted_ubvy = shifted_bounds.ubvy;
 
-  float x = st.x+shift(ubx,lbx);
-  float y = st.y+shift(uby,lby);
-  float vx = st.vx+shift(ubvx,lbvx);
-  float vy = st.vy+shift(ubvy,lbvy);
+  float x = shifted_st.x;
+  float y = shifted_st.y;
+  float vx = shifted_st.vx;
+  float vy = shifted_st.vy;
   float A = proposed.a;
   float Theta = proposed.theta;
   float AX = A*sin(Theta);
@@ -311,84 +338,20 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   return res.cin;
 }
 
-float BoxShim::get_x() {
-  return _inav.get_position().y;
+state BoxShim::shift_state(state st) {
+  state res;
+  res.x = st.x+shift(x_ub(),x_lb());
+  res.y = st.y+shift(y_ub(),y_lb());
+  res.vx = st.vx+shift(vx_ub(),vx_lb());
+  res.vy = st.vy+shift(vy_ub(),vy_lb());
+  return res;
 }
 
-float BoxShim::get_y() {
-  return _inav.get_position().z;
-}
-
-float BoxShim::get_vx() {
-  return _inav.get_velocity().y;
-}
-
-float BoxShim::get_vy() {
-  return _inav.get_velocity().z;
-}
-
-float BoxShim::throttle_to_accel_scale() {
-  return gravity/mid_throttle();
-}
-
-// Gives an estimate of an upper bound on acceleration
-// using the throttle value.
-// Gives a conservative upper bound by assuming the
-// quadcopter is perfectly level and thus all
-// motors are pointed upwards.
-float BoxShim::get_acc_from_throttle(float throttle) {
-  return throttle*throttle_to_accel_scale();
-}
-
-float BoxShim::get_throttle_from_acc(float A) {
-  return A/throttle_to_accel_scale();
-}
-
-void BoxShim::attitude_shim_entry_point(Att_shim_params params, bool first_call) {
-
-  //_params = {-500.0f, 10000.0f, -10000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
-
-  static float roll = 0.0f;
-  static int16_t throttle = 0;
-
-  switch (params.which_fn) {
-
-  case THROTTLE_SET:
-
-    throttle = params.throttle;
-
-    break;
-    
-  default:
-
-    roll = params.roll;
-
-  }
-
-  control_in proposed;
-  proposed.theta = radians(wrap_180_cd_float(roll)/100.0f);
-  proposed.a =
-    get_acc_from_throttle(params.angle_boost ?
-			  get_angle_boost(throttle + 0.0f) :
-			  throttle + 0.0f);
-
-  _stats.throttle = throttle;
-  _stats.angle_boost = params.angle_boost;
-
-  state st;
-  st.x = get_x();
-  st.y = get_y();
-  st.vx = get_vx();
-  st.vy = get_vy();
-
-  control_in safe = monitor(proposed, st);
-
-  if (shim_on() && safe.updated) {
-    params.roll = degrees(safe.theta)*100.0f;
-    params.throttle = get_throttle_from_acc(safe.a);
-    params.angle_boost = false;
-  }
-
-  AC_AttitudeShim::attitude_shim_entry_point(params, first_call);
-
+bounds BoxShim::shift_bounds() {
+  bounds res;
+  res.ubx = bound_shift(x_ub(),x_lb());
+  res.ubvx = bound_shift(vx_ub(),vx_lb());
+  res.uby = bound_shift(y_ub(),y_lb());
+  res.ubvy = bound_shift(vy_ub(),vy_lb());
+  return res;
 }

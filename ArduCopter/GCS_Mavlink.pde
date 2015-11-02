@@ -118,57 +118,63 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 {
 #if SHIM
     mavlink_msg_shim_enable_disable_send(chan, attitude_control.shim_on() ? 1 : 0); //do i need the ? : operator
+
+    BoxShim box1 = attitude_control.get_box(1);
+    BoxShim box2 = attitude_control.get_box(2);
+    BoxShim box3 = attitude_control.get_box(3);
+    BoxShim box4 = attitude_control.get_box(4);
+
     mavlink_msg_shim_params_send(chan,
-                                 attitude_control.smooth(),
-                                 attitude_control.lookahead(),
-                                 attitude_control.h_ub(),
-                                 attitude_control.h_lb(),
-                                 attitude_control.hprime_ub(),
-                                 attitude_control.hprime_lb(),
-                                 attitude_control.x_ub(),
-                                 attitude_control.x_lb(),
-                                 attitude_control.xprime_ub(),
-                                 attitude_control.xprime_lb(),
-                                 attitude_control.roll_lb(),
-                                 attitude_control.abraking(),
-                                 attitude_control.mid_throttle());
+                                 box1.smooth(),
+                                 box1.lookahead(),
+                                 box1.roll_lb(),
+                                 box1.abraking(),
+                                 attitude_control.mid_throttle(),
+
+                                 box1.y_ub(),
+                                 box1.y_lb(),
+                                 box1.vy_ub(),
+                                 box1.x_ub(),
+                                 box1.x_lb(),
+                                 box1.vx_ub(),
+
+                                 box2.y_ub(),
+                                 box2.y_lb(),
+                                 box2.vy_ub(),
+                                 box2.x_ub(),
+                                 box2.x_lb(),
+                                 box2.vx_ub(),
+
+                                 box3.y_ub(),
+                                 box3.y_lb(),
+                                 box3.vy_ub(),
+                                 box3.x_ub(),
+                                 box3.x_lb(),
+                                 box3.vx_ub(),
+
+                                 box4.y_ub(),
+                                 box4.y_lb(),
+                                 box4.vy_ub(),
+                                 box4.x_ub(),
+                                 box4.x_lb(),
+                                 box4.vx_ub());
 
     shim_stats stats = attitude_control.get_shim_stats();
     mavlink_msg_shim_stats_send(chan,
-                                stats.something_weird,
+                                stats.can_run[0],
+                                stats.can_run[1],
+                                stats.can_run[2],
+                                stats.can_run[3],
                                 stats.x,
                                 stats.y,
                                 stats.vx,
                                 stats.vy,
                                 stats.throttle,
                                 stats.angle_boost,
-                                stats.A,
-                                stats.Theta,
+                                stats.A_proposed,
+                                stats.Theta_proposed,
                                 stats.a,
-                                stats.theta,
-                                stats.AX,
-                                stats.AY,
-                                stats.ax,
-                                stats.ay,
-                                stats.amin_x,
-                                stats.amin_y,
-                                stats.safe_x,
-                                stats.safe_y,
-                                stats.safe_x_vel_ub,
-                                stats.safe_x_vel_lb,
-                                stats.safe_x_pos_ub,
-                                stats.safe_x_pos_lb,
-                                stats.safe_y_vel_ub,
-                                stats.safe_y_vel_lb,
-                                stats.safe_y_pos_ub,
-                                stats.safe_y_pos_lb,
-                                stats.Theta_bound_check);
-    /*
-    mavlink_msg_throttle_pwm_stats_send(chan,
-                                   stats.window_time,
-                                   stats.pwm_avg,
-                                   stats.throttle_avg);
-                                   */
+                                stats.theta);
 #endif
 }
 
@@ -941,20 +947,30 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         // decode packet
         mavlink_shim_params_t packet;
         mavlink_msg_shim_params_decode(msg, &packet);
-        attitude_control.set_smooth(packet.smooth == 1 ? true : false);
-        attitude_control.set_lookahead(packet.lookahead);
-        attitude_control.set_h_ub(packet.h_ub);
-        attitude_control.set_h_lb(packet.h_lb);
-        attitude_control.set_hprime_ub(packet.hprime_ub);
-        attitude_control.set_hprime_lb(packet.hprime_lb);
-        attitude_control.set_x_ub(packet.x_ub);
-        attitude_control.set_x_lb(packet.x_lb);
-        attitude_control.set_xprime_ub(packet.xprime_ub);
-        attitude_control.set_xprime_lb(packet.xprime_lb);
-        attitude_control.set_roll_lb(packet.roll_lb);
-        attitude_control.set_abraking(packet.abraking);
         attitude_control.set_mid_throttle(packet.mid_throttle);
 
+        bool smooth = packet.smooth;
+        uint8_t lookahead = packet.lookahead;
+        float roll_lb = packet.roll_lb;
+        uint16_t abraking = packet.abraking;
+
+        attitude_control.clear_boxes();
+
+        attitude_control.add_box(1, packet.y_ub1, packet.y_lb1, packet.vy_ub1, -packet.vy_ub1,
+                                 packet.x_ub1, packet.x_lb1, packet.vx_ub1, -packet.vx_ub1,
+                                 roll_lb, abraking, smooth, lookahead);
+
+        attitude_control.add_box(2, packet.y_ub2, packet.y_lb2, packet.vy_ub2, -packet.vy_ub2,
+                                 packet.x_ub2, packet.x_lb2, packet.vx_ub2, -packet.vx_ub2,
+                                 roll_lb, abraking, smooth, lookahead);
+
+        attitude_control.add_box(3, packet.y_ub3, packet.y_lb3, packet.vy_ub3, -packet.vy_ub3,
+                                 packet.x_ub3, packet.x_lb3, packet.vx_ub3, -packet.vx_ub3,
+                                 roll_lb, abraking, smooth, lookahead);
+
+        attitude_control.add_box(4, packet.y_ub4, packet.y_lb4, packet.vy_ub4, -packet.vy_ub4,
+                                 packet.x_ub4, packet.x_lb4, packet.vx_ub4, -packet.vx_ub4,
+                                 roll_lb, abraking, smooth, lookahead);
 #endif
         break;
     }

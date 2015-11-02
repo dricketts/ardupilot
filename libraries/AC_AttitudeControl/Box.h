@@ -25,6 +25,13 @@ struct state {
   float vy;
 };
 
+struct bounds {
+  float ubx;
+  float uby;
+  float ubvx;
+  float ubvy;
+};
+
 struct safety_check {
   bool vel_ub;
   bool vel_lb;
@@ -41,31 +48,85 @@ struct monitor_check {
   control_in cin;
 };
 
-class BoxShim : public AC_AttitudeShim {
- public:
-  BoxShim(AP_AHRS &ahrs,
-	  const AP_Vehicle::MultiCopter &aparm,
-	  AP_Motors& motors,
-	  AC_P& pi_angle_roll, AC_P& pi_angle_pitch, AC_P& pi_angle_yaw,
-	  AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw,
-    const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
-    const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
-    const float roll_lb, const float abraking, const float mid_throttle,
-	  const float d_ctrl, const float lookahead,
-	  const AP_InertialNav& inav
-	  ) :
-  AC_AttitudeShim(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
-		  pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw,
-      h_ub, h_lb, hprime_ub, hprime_lb, x_ub, x_lb, xprime_ub, xprime_lb,
-		  roll_lb, abraking, mid_throttle, d_ctrl, lookahead),
-    _inav(inav)
-    {
-    };
+// statistics about the shim
+struct box_shim_stats {
+  float x;
+  float y;
+  float vx;
+  float vy;
+  uint16_t throttle;
+  bool angle_boost;
+  float A;
+  float Theta;
+  float a;
+  float theta;
+  float AX;
+  float AY;
+  float AX_check;
+  float AY_check;
+  float ax;
+  float ay;
+  float amin_x;
+  float amin_y;
+  bool safe_x;
+  bool safe_y;
+  bool safe_x_vel_ub;
+  bool safe_x_vel_lb;
+  bool safe_x_pos_ub;
+  bool safe_x_pos_lb;
+  bool safe_y_vel_ub;
+  bool safe_y_vel_lb;
+  bool safe_y_pos_ub;
+  bool safe_y_pos_lb;
+  bool Theta_bound_check;
+};
 
-  float get_x();
-  float get_y();
-  float get_vx();
-  float get_vy();
+class BoxShim {
+ public:
+  BoxShim() {};
+
+  /*
+   * Returns true iff the monitor can be run.
+   */
+  bool can_run(state st);
+
+  /*
+   * Runs the monitor, returning a safe control input.
+   */
+  control_in monitor(control_in proposed, state st);
+
+  // set shim bounding parameters
+  void set_y_ub(float b) {_y_ub = b;}
+  void set_y_lb(float b) {_y_lb = b;}
+  void set_vy_ub(float b) {_vy_ub = b;}
+  void set_vy_lb(float b) {_vy_lb = b;}
+  void set_x_ub(float b) {_x_ub = b;}
+  void set_x_lb(float b) {_x_lb = b;}
+  void set_vx_ub(float b) {_vx_ub = b;}
+  void set_vx_lb(float b) {_vx_lb = b;}
+  void set_roll_lb(float r) {_roll_lb = r;}
+  void set_abraking(float a) {_abraking = a;}
+  void set_lookahead(float x) {_lookahead = x;}
+  void set_d_ctrl(float d_ctrl) {_d_ctrl = d_ctrl;}
+  void set_smooth(bool smooth) {_smooth = smooth;}
+
+  bool smooth() {return _smooth;}
+  float y_ub() {return _y_ub;}
+  float y_lb() {return _y_lb;}
+  float vy_ub() {return _vy_ub;}
+  float vy_lb() {return _vy_lb;}
+  float x_ub() {return _x_ub;}
+  float x_lb() {return _x_lb;}
+  float vx_ub() {return _vx_ub;}
+  float vx_lb() {return _vx_lb;}
+  float roll_lb() {return _roll_lb;}
+  float abraking() {return _abraking;}
+  float lookahead() {return _lookahead;}
+
+  //
+  // Stats Reporing (Accessor)
+  //
+  box_shim_stats get_shim_stats() {return _stats;}
 
  private:
 
@@ -76,11 +137,13 @@ class BoxShim : public AC_AttitudeShim {
   float get_acc_from_throttle(float throttle);
   float get_throttle_from_acc(float A);
 
-
   /*
-   * Runs the monitor, returning a safe control input.
+   * Functions for computing if this monitor can run.
    */
-  control_in monitor(control_in proposed, state st);
+  bool ind_inv_acc(float y, float v, float ub, float amin);
+  bool ind_inv_vel(float v, float ub);
+  bool ind_inv(float vx, float vy, float x, float y, float ubx,
+	       float ubvx, float uby, float ubvy);
 
   /*
    * Implements the actual monitor logic.
@@ -153,7 +216,30 @@ class BoxShim : public AC_AttitudeShim {
    */
   float amin_Y();
 
-  const AP_InertialNav& _inav;
+  state shift_state(state st);
+  bounds shift_bounds();
+
+  bool _smooth;
+  // delay associated with actuators
+  float _d_ctrl;
+  // height bounds
+  float _y_ub;
+  float _y_lb;
+  // vertical velocity bounds
+  float _vy_ub;
+  float _vy_lb;
+  // horizontal bounds
+  float _x_ub;
+  float _x_lb;
+  // horizontal velocity bounds
+  float _vx_ub;
+  float _vx_lb;
+  // roll bounds
+  float _roll_lb;
+  // braking acceleration for vertical dimension
+  float _abraking;
+  float _lookahead;
+  box_shim_stats _stats;
 };
 
 #endif //Box_H
