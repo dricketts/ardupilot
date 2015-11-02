@@ -119,52 +119,58 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 #if SHIM
     mavlink_msg_shim_enable_disable_send(chan, attitude_control.shim_on() ? 1 : 0); //do i need the ? : operator
 
-    BoxShim box1 = attitude_control.get_box(1);
-    BoxShim box2 = attitude_control.get_box(2);
-    BoxShim box3 = attitude_control.get_box(3);
-    BoxShim box4 = attitude_control.get_box(4);
+    if (attitude_control.has_box(1) &&
+        attitude_control.has_box(2) &&
+        attitude_control.has_box(3) &&
+        attitude_control.has_box(4)) {
+        BoxShim box1 = attitude_control.get_box(1);
+        BoxShim box2 = attitude_control.get_box(2);
+        BoxShim box3 = attitude_control.get_box(3);
+        BoxShim box4 = attitude_control.get_box(4);
 
-    mavlink_msg_shim_params_send(chan,
-                                 box1.smooth(),
-                                 box1.lookahead(),
-                                 box1.roll_lb(),
-                                 box1.abraking(),
-                                 attitude_control.mid_throttle(),
+        mavlink_msg_shim_params_send(chan,
+                                     box1.smooth(),
+                                     box1.lookahead(),
+                                     box1.roll_lb(),
+                                     box1.abraking(),
+                                     attitude_control.mid_throttle(),
 
-                                 box1.y_ub(),
-                                 box1.y_lb(),
-                                 box1.vy_ub(),
-                                 box1.x_ub(),
-                                 box1.x_lb(),
-                                 box1.vx_ub(),
+                                     box1.y_ub(),
+                                     box1.y_lb(),
+                                     box1.vy_ub(),
+                                     box1.x_ub(),
+                                     box1.x_lb(),
+                                     box1.vx_ub(),
 
-                                 box2.y_ub(),
-                                 box2.y_lb(),
-                                 box2.vy_ub(),
-                                 box2.x_ub(),
-                                 box2.x_lb(),
-                                 box2.vx_ub(),
+                                     box2.y_ub(),
+                                     box2.y_lb(),
+                                     box2.vy_ub(),
+                                     box2.x_ub(),
+                                     box2.x_lb(),
+                                     box2.vx_ub(),
 
-                                 box3.y_ub(),
-                                 box3.y_lb(),
-                                 box3.vy_ub(),
-                                 box3.x_ub(),
-                                 box3.x_lb(),
-                                 box3.vx_ub(),
+                                     box3.y_ub(),
+                                     box3.y_lb(),
+                                     box3.vy_ub(),
+                                     box3.x_ub(),
+                                     box3.x_lb(),
+                                     box3.vx_ub(),
 
-                                 box4.y_ub(),
-                                 box4.y_lb(),
-                                 box4.vy_ub(),
-                                 box4.x_ub(),
-                                 box4.x_lb(),
-                                 box4.vx_ub());
+                                     box4.y_ub(),
+                                     box4.y_lb(),
+                                     box4.vy_ub(),
+                                     box4.x_ub(),
+                                     box4.x_lb(),
+                                     box4.vx_ub());
+    }
 
     shim_stats stats = attitude_control.get_shim_stats();
+
     mavlink_msg_shim_stats_send(chan,
-                                stats.can_run[0],
-                                stats.can_run[1],
-                                stats.can_run[2],
-                                stats.can_run[3],
+                                stats.can_run.count(1) == 1 ? stats.can_run[1] : 2,
+                                stats.can_run.count(2) == 1 ? stats.can_run[1] : 2,
+                                stats.can_run.count(3) == 1 ? stats.can_run[1] : 2,
+                                stats.can_run.count(4) == 1 ? stats.can_run[1] : 2,
                                 stats.x,
                                 stats.y,
                                 stats.vx,

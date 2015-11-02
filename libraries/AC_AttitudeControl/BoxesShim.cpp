@@ -134,3 +134,7 @@ void BoxesShim::clear_boxes() {
 BoxShim BoxesShim::get_box(const uint8_t id) {
   return _boxes[id];
 }
+
+bool BoxesShim::has_box(const uint8_t id) {
+  return _boxes.count(id) == 1;
+}

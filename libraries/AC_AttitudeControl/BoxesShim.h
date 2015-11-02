@@ -52,6 +52,7 @@ class BoxesShim : public AC_AttitudeShim {
   void clear_boxes();
 
   BoxShim get_box(const uint8_t id);
+  bool has_box(const uint8_t id);
 
   // enable/disable shim
   void enable_shim() {_shim_on = true;}
