@@ -958,7 +958,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         bool smooth = packet.smooth;
         uint8_t lookahead = packet.lookahead;
         float roll_lb = packet.roll_lb;
-        uint16_t abraking = packet.abraking;
+        int16_t abraking = packet.abraking;
 
         attitude_control.clear_boxes();
 

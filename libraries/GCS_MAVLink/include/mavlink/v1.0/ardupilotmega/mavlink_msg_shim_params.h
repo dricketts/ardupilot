@@ -5,32 +5,32 @@
 typedef struct __mavlink_shim_params_t
 {
  float roll_lb; ///< the lower bound on roll angle allowed by the shim in (??DEGREES??)
- uint16_t abraking; ///< The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.
+ int16_t abraking; ///< The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.
  uint16_t mid_throttle; ///< The throttle required for hover.
- uint16_t y_ub1; ///< the height upper bound of the shim in cm
- uint16_t y_lb1; ///< the height lower bound of the shim in cm
- uint16_t vy_ub1; ///< the vertical velocity upper bound of the shim in cm/s
- uint16_t x_ub1; ///< the upper bound for the "x" dimension of the shim in cm
- uint16_t x_lb1; ///< the lower bound for the "x" dimension of the shim in cm
- uint16_t vx_ub1; ///< the "x" dimension velocity upper bound of the shim in cm/s
- uint16_t y_ub2; ///< the height upper bound of the shim in cm
- uint16_t y_lb2; ///< the height lower bound of the shim in cm
- uint16_t vy_ub2; ///< the vertical velocity upper bound of the shim in cm/s
- uint16_t x_ub2; ///< the upper bound for the "x" dimension of the shim in cm
- uint16_t x_lb2; ///< the lower bound for the "x" dimension of the shim in cm
- uint16_t vx_ub2; ///< the "x" dimension velocity upper bound of the shim in cm/s
- uint16_t y_ub3; ///< the height upper bound of the shim in cm
- uint16_t y_lb3; ///< the height lower bound of the shim in cm
- uint16_t vy_ub3; ///< the vertical velocity upper bound of the shim in cm/s
- uint16_t x_ub3; ///< the upper bound for the "x" dimension of the shim in cm
- uint16_t x_lb3; ///< the lower bound for the "x" dimension of the shim in cm
- uint16_t vx_ub3; ///< the "x" dimension velocity upper bound of the shim in cm/s
- uint16_t y_ub4; ///< the height upper bound of the shim in cm
- uint16_t y_lb4; ///< the height lower bound of the shim in cm
- uint16_t vy_ub4; ///< the vertical velocity upper bound of the shim in cm/s
- uint16_t x_ub4; ///< the upper bound for the "x" dimension of the shim in cm
- uint16_t x_lb4; ///< the lower bound for the "x" dimension of the shim in cm
- uint16_t vx_ub4; ///< the "x" dimension velocity upper bound of the shim in cm/s
+ int16_t y_ub1; ///< the height upper bound of the shim in cm
+ int16_t y_lb1; ///< the height lower bound of the shim in cm
+ int16_t vy_ub1; ///< the vertical velocity upper bound of the shim in cm/s
+ int16_t x_ub1; ///< the upper bound for the "x" dimension of the shim in cm
+ int16_t x_lb1; ///< the lower bound for the "x" dimension of the shim in cm
+ int16_t vx_ub1; ///< the "x" dimension velocity upper bound of the shim in cm/s
+ int16_t y_ub2; ///< the height upper bound of the shim in cm
+ int16_t y_lb2; ///< the height lower bound of the shim in cm
+ int16_t vy_ub2; ///< the vertical velocity upper bound of the shim in cm/s
+ int16_t x_ub2; ///< the upper bound for the "x" dimension of the shim in cm
+ int16_t x_lb2; ///< the lower bound for the "x" dimension of the shim in cm
+ int16_t vx_ub2; ///< the "x" dimension velocity upper bound of the shim in cm/s
+ int16_t y_ub3; ///< the height upper bound of the shim in cm
+ int16_t y_lb3; ///< the height lower bound of the shim in cm
+ int16_t vy_ub3; ///< the vertical velocity upper bound of the shim in cm/s
+ int16_t x_ub3; ///< the upper bound for the "x" dimension of the shim in cm
+ int16_t x_lb3; ///< the lower bound for the "x" dimension of the shim in cm
+ int16_t vx_ub3; ///< the "x" dimension velocity upper bound of the shim in cm/s
+ int16_t y_ub4; ///< the height upper bound of the shim in cm
+ int16_t y_lb4; ///< the height lower bound of the shim in cm
+ int16_t vy_ub4; ///< the vertical velocity upper bound of the shim in cm/s
+ int16_t x_ub4; ///< the upper bound for the "x" dimension of the shim in cm
+ int16_t x_lb4; ///< the lower bound for the "x" dimension of the shim in cm
+ int16_t vx_ub4; ///< the "x" dimension velocity upper bound of the shim in cm/s
  uint8_t smooth; ///< 1 to enable smoothing, 0 to disable
  uint8_t lookahead; ///< lookahead factor for the smoothing shim
 } mavlink_shim_params_t;
@@ -38,8 +38,8 @@ typedef struct __mavlink_shim_params_t
 #define MAVLINK_MSG_ID_SHIM_PARAMS_LEN 58
 #define MAVLINK_MSG_ID_231_LEN 58
 
-#define MAVLINK_MSG_ID_SHIM_PARAMS_CRC 150
-#define MAVLINK_MSG_ID_231_CRC 150
+#define MAVLINK_MSG_ID_SHIM_PARAMS_CRC 8
+#define MAVLINK_MSG_ID_231_CRC 8
 
 
 
@@ -47,32 +47,32 @@ typedef struct __mavlink_shim_params_t
 	"SHIM_PARAMS", \
 	29, \
 	{  { "roll_lb", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_shim_params_t, roll_lb) }, \
-         { "abraking", NULL, MAVLINK_TYPE_UINT16_T, 0, 4, offsetof(mavlink_shim_params_t, abraking) }, \
+         { "abraking", NULL, MAVLINK_TYPE_INT16_T, 0, 4, offsetof(mavlink_shim_params_t, abraking) }, \
          { "mid_throttle", NULL, MAVLINK_TYPE_UINT16_T, 0, 6, offsetof(mavlink_shim_params_t, mid_throttle) }, \
-         { "y_ub1", NULL, MAVLINK_TYPE_UINT16_T, 0, 8, offsetof(mavlink_shim_params_t, y_ub1) }, \
-         { "y_lb1", NULL, MAVLINK_TYPE_UINT16_T, 0, 10, offsetof(mavlink_shim_params_t, y_lb1) }, \
-         { "vy_ub1", NULL, MAVLINK_TYPE_UINT16_T, 0, 12, offsetof(mavlink_shim_params_t, vy_ub1) }, \
-         { "x_ub1", NULL, MAVLINK_TYPE_UINT16_T, 0, 14, offsetof(mavlink_shim_params_t, x_ub1) }, \
-         { "x_lb1", NULL, MAVLINK_TYPE_UINT16_T, 0, 16, offsetof(mavlink_shim_params_t, x_lb1) }, \
-         { "vx_ub1", NULL, MAVLINK_TYPE_UINT16_T, 0, 18, offsetof(mavlink_shim_params_t, vx_ub1) }, \
-         { "y_ub2", NULL, MAVLINK_TYPE_UINT16_T, 0, 20, offsetof(mavlink_shim_params_t, y_ub2) }, \
-         { "y_lb2", NULL, MAVLINK_TYPE_UINT16_T, 0, 22, offsetof(mavlink_shim_params_t, y_lb2) }, \
-         { "vy_ub2", NULL, MAVLINK_TYPE_UINT16_T, 0, 24, offsetof(mavlink_shim_params_t, vy_ub2) }, \
-         { "x_ub2", NULL, MAVLINK_TYPE_UINT16_T, 0, 26, offsetof(mavlink_shim_params_t, x_ub2) }, \
-         { "x_lb2", NULL, MAVLINK_TYPE_UINT16_T, 0, 28, offsetof(mavlink_shim_params_t, x_lb2) }, \
-         { "vx_ub2", NULL, MAVLINK_TYPE_UINT16_T, 0, 30, offsetof(mavlink_shim_params_t, vx_ub2) }, \
-         { "y_ub3", NULL, MAVLINK_TYPE_UINT16_T, 0, 32, offsetof(mavlink_shim_params_t, y_ub3) }, \
-         { "y_lb3", NULL, MAVLINK_TYPE_UINT16_T, 0, 34, offsetof(mavlink_shim_params_t, y_lb3) }, \
-         { "vy_ub3", NULL, MAVLINK_TYPE_UINT16_T, 0, 36, offsetof(mavlink_shim_params_t, vy_ub3) }, \
-         { "x_ub3", NULL, MAVLINK_TYPE_UINT16_T, 0, 38, offsetof(mavlink_shim_params_t, x_ub3) }, \
-         { "x_lb3", NULL, MAVLINK_TYPE_UINT16_T, 0, 40, offsetof(mavlink_shim_params_t, x_lb3) }, \
-         { "vx_ub3", NULL, MAVLINK_TYPE_UINT16_T, 0, 42, offsetof(mavlink_shim_params_t, vx_ub3) }, \
-         { "y_ub4", NULL, MAVLINK_TYPE_UINT16_T, 0, 44, offsetof(mavlink_shim_params_t, y_ub4) }, \
-         { "y_lb4", NULL, MAVLINK_TYPE_UINT16_T, 0, 46, offsetof(mavlink_shim_params_t, y_lb4) }, \
-         { "vy_ub4", NULL, MAVLINK_TYPE_UINT16_T, 0, 48, offsetof(mavlink_shim_params_t, vy_ub4) }, \
-         { "x_ub4", NULL, MAVLINK_TYPE_UINT16_T, 0, 50, offsetof(mavlink_shim_params_t, x_ub4) }, \
-         { "x_lb4", NULL, MAVLINK_TYPE_UINT16_T, 0, 52, offsetof(mavlink_shim_params_t, x_lb4) }, \
-         { "vx_ub4", NULL, MAVLINK_TYPE_UINT16_T, 0, 54, offsetof(mavlink_shim_params_t, vx_ub4) }, \
+         { "y_ub1", NULL, MAVLINK_TYPE_INT16_T, 0, 8, offsetof(mavlink_shim_params_t, y_ub1) }, \
+         { "y_lb1", NULL, MAVLINK_TYPE_INT16_T, 0, 10, offsetof(mavlink_shim_params_t, y_lb1) }, \
+         { "vy_ub1", NULL, MAVLINK_TYPE_INT16_T, 0, 12, offsetof(mavlink_shim_params_t, vy_ub1) }, \
+         { "x_ub1", NULL, MAVLINK_TYPE_INT16_T, 0, 14, offsetof(mavlink_shim_params_t, x_ub1) }, \
+         { "x_lb1", NULL, MAVLINK_TYPE_INT16_T, 0, 16, offsetof(mavlink_shim_params_t, x_lb1) }, \
+         { "vx_ub1", NULL, MAVLINK_TYPE_INT16_T, 0, 18, offsetof(mavlink_shim_params_t, vx_ub1) }, \
+         { "y_ub2", NULL, MAVLINK_TYPE_INT16_T, 0, 20, offsetof(mavlink_shim_params_t, y_ub2) }, \
+         { "y_lb2", NULL, MAVLINK_TYPE_INT16_T, 0, 22, offsetof(mavlink_shim_params_t, y_lb2) }, \
+         { "vy_ub2", NULL, MAVLINK_TYPE_INT16_T, 0, 24, offsetof(mavlink_shim_params_t, vy_ub2) }, \
+         { "x_ub2", NULL, MAVLINK_TYPE_INT16_T, 0, 26, offsetof(mavlink_shim_params_t, x_ub2) }, \
+         { "x_lb2", NULL, MAVLINK_TYPE_INT16_T, 0, 28, offsetof(mavlink_shim_params_t, x_lb2) }, \
+         { "vx_ub2", NULL, MAVLINK_TYPE_INT16_T, 0, 30, offsetof(mavlink_shim_params_t, vx_ub2) }, \
+         { "y_ub3", NULL, MAVLINK_TYPE_INT16_T, 0, 32, offsetof(mavlink_shim_params_t, y_ub3) }, \
+         { "y_lb3", NULL, MAVLINK_TYPE_INT16_T, 0, 34, offsetof(mavlink_shim_params_t, y_lb3) }, \
+         { "vy_ub3", NULL, MAVLINK_TYPE_INT16_T, 0, 36, offsetof(mavlink_shim_params_t, vy_ub3) }, \
+         { "x_ub3", NULL, MAVLINK_TYPE_INT16_T, 0, 38, offsetof(mavlink_shim_params_t, x_ub3) }, \
+         { "x_lb3", NULL, MAVLINK_TYPE_INT16_T, 0, 40, offsetof(mavlink_shim_params_t, x_lb3) }, \
+         { "vx_ub3", NULL, MAVLINK_TYPE_INT16_T, 0, 42, offsetof(mavlink_shim_params_t, vx_ub3) }, \
+         { "y_ub4", NULL, MAVLINK_TYPE_INT16_T, 0, 44, offsetof(mavlink_shim_params_t, y_ub4) }, \
+         { "y_lb4", NULL, MAVLINK_TYPE_INT16_T, 0, 46, offsetof(mavlink_shim_params_t, y_lb4) }, \
+         { "vy_ub4", NULL, MAVLINK_TYPE_INT16_T, 0, 48, offsetof(mavlink_shim_params_t, vy_ub4) }, \
+         { "x_ub4", NULL, MAVLINK_TYPE_INT16_T, 0, 50, offsetof(mavlink_shim_params_t, x_ub4) }, \
+         { "x_lb4", NULL, MAVLINK_TYPE_INT16_T, 0, 52, offsetof(mavlink_shim_params_t, x_lb4) }, \
+         { "vx_ub4", NULL, MAVLINK_TYPE_INT16_T, 0, 54, offsetof(mavlink_shim_params_t, vx_ub4) }, \
          { "smooth", NULL, MAVLINK_TYPE_UINT8_T, 0, 56, offsetof(mavlink_shim_params_t, smooth) }, \
          { "lookahead", NULL, MAVLINK_TYPE_UINT8_T, 0, 57, offsetof(mavlink_shim_params_t, lookahead) }, \
          } \
@@ -117,37 +117,37 @@ typedef struct __mavlink_shim_params_t
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_shim_params_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-						       uint8_t smooth, uint8_t lookahead, float roll_lb, uint16_t abraking, uint16_t mid_throttle, uint16_t y_ub1, uint16_t y_lb1, uint16_t vy_ub1, uint16_t x_ub1, uint16_t x_lb1, uint16_t vx_ub1, uint16_t y_ub2, uint16_t y_lb2, uint16_t vy_ub2, uint16_t x_ub2, uint16_t x_lb2, uint16_t vx_ub2, uint16_t y_ub3, uint16_t y_lb3, uint16_t vy_ub3, uint16_t x_ub3, uint16_t x_lb3, uint16_t vx_ub3, uint16_t y_ub4, uint16_t y_lb4, uint16_t vy_ub4, uint16_t x_ub4, uint16_t x_lb4, uint16_t vx_ub4)
+						       uint8_t smooth, uint8_t lookahead, float roll_lb, int16_t abraking, uint16_t mid_throttle, int16_t y_ub1, int16_t y_lb1, int16_t vy_ub1, int16_t x_ub1, int16_t x_lb1, int16_t vx_ub1, int16_t y_ub2, int16_t y_lb2, int16_t vy_ub2, int16_t x_ub2, int16_t x_lb2, int16_t vx_ub2, int16_t y_ub3, int16_t y_lb3, int16_t vy_ub3, int16_t x_ub3, int16_t x_lb3, int16_t vx_ub3, int16_t y_ub4, int16_t y_lb4, int16_t vy_ub4, int16_t x_ub4, int16_t x_lb4, int16_t vx_ub4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_PARAMS_LEN];
 	_mav_put_float(buf, 0, roll_lb);
-	_mav_put_uint16_t(buf, 4, abraking);
+	_mav_put_int16_t(buf, 4, abraking);
 	_mav_put_uint16_t(buf, 6, mid_throttle);
-	_mav_put_uint16_t(buf, 8, y_ub1);
-	_mav_put_uint16_t(buf, 10, y_lb1);
-	_mav_put_uint16_t(buf, 12, vy_ub1);
-	_mav_put_uint16_t(buf, 14, x_ub1);
-	_mav_put_uint16_t(buf, 16, x_lb1);
-	_mav_put_uint16_t(buf, 18, vx_ub1);
-	_mav_put_uint16_t(buf, 20, y_ub2);
-	_mav_put_uint16_t(buf, 22, y_lb2);
-	_mav_put_uint16_t(buf, 24, vy_ub2);
-	_mav_put_uint16_t(buf, 26, x_ub2);
-	_mav_put_uint16_t(buf, 28, x_lb2);
-	_mav_put_uint16_t(buf, 30, vx_ub2);
-	_mav_put_uint16_t(buf, 32, y_ub3);
-	_mav_put_uint16_t(buf, 34, y_lb3);
-	_mav_put_uint16_t(buf, 36, vy_ub3);
-	_mav_put_uint16_t(buf, 38, x_ub3);
-	_mav_put_uint16_t(buf, 40, x_lb3);
-	_mav_put_uint16_t(buf, 42, vx_ub3);
-	_mav_put_uint16_t(buf, 44, y_ub4);
-	_mav_put_uint16_t(buf, 46, y_lb4);
-	_mav_put_uint16_t(buf, 48, vy_ub4);
-	_mav_put_uint16_t(buf, 50, x_ub4);
-	_mav_put_uint16_t(buf, 52, x_lb4);
-	_mav_put_uint16_t(buf, 54, vx_ub4);
+	_mav_put_int16_t(buf, 8, y_ub1);
+	_mav_put_int16_t(buf, 10, y_lb1);
+	_mav_put_int16_t(buf, 12, vy_ub1);
+	_mav_put_int16_t(buf, 14, x_ub1);
+	_mav_put_int16_t(buf, 16, x_lb1);
+	_mav_put_int16_t(buf, 18, vx_ub1);
+	_mav_put_int16_t(buf, 20, y_ub2);
+	_mav_put_int16_t(buf, 22, y_lb2);
+	_mav_put_int16_t(buf, 24, vy_ub2);
+	_mav_put_int16_t(buf, 26, x_ub2);
+	_mav_put_int16_t(buf, 28, x_lb2);
+	_mav_put_int16_t(buf, 30, vx_ub2);
+	_mav_put_int16_t(buf, 32, y_ub3);
+	_mav_put_int16_t(buf, 34, y_lb3);
+	_mav_put_int16_t(buf, 36, vy_ub3);
+	_mav_put_int16_t(buf, 38, x_ub3);
+	_mav_put_int16_t(buf, 40, x_lb3);
+	_mav_put_int16_t(buf, 42, vx_ub3);
+	_mav_put_int16_t(buf, 44, y_ub4);
+	_mav_put_int16_t(buf, 46, y_lb4);
+	_mav_put_int16_t(buf, 48, vy_ub4);
+	_mav_put_int16_t(buf, 50, x_ub4);
+	_mav_put_int16_t(buf, 52, x_lb4);
+	_mav_put_int16_t(buf, 54, vx_ub4);
 	_mav_put_uint8_t(buf, 56, smooth);
 	_mav_put_uint8_t(buf, 57, lookahead);
 
@@ -234,37 +234,37 @@ static inline uint16_t mavlink_msg_shim_params_pack(uint8_t system_id, uint8_t c
  */
 static inline uint16_t mavlink_msg_shim_params_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
 							   mavlink_message_t* msg,
-						           uint8_t smooth,uint8_t lookahead,float roll_lb,uint16_t abraking,uint16_t mid_throttle,uint16_t y_ub1,uint16_t y_lb1,uint16_t vy_ub1,uint16_t x_ub1,uint16_t x_lb1,uint16_t vx_ub1,uint16_t y_ub2,uint16_t y_lb2,uint16_t vy_ub2,uint16_t x_ub2,uint16_t x_lb2,uint16_t vx_ub2,uint16_t y_ub3,uint16_t y_lb3,uint16_t vy_ub3,uint16_t x_ub3,uint16_t x_lb3,uint16_t vx_ub3,uint16_t y_ub4,uint16_t y_lb4,uint16_t vy_ub4,uint16_t x_ub4,uint16_t x_lb4,uint16_t vx_ub4)
+						           uint8_t smooth,uint8_t lookahead,float roll_lb,int16_t abraking,uint16_t mid_throttle,int16_t y_ub1,int16_t y_lb1,int16_t vy_ub1,int16_t x_ub1,int16_t x_lb1,int16_t vx_ub1,int16_t y_ub2,int16_t y_lb2,int16_t vy_ub2,int16_t x_ub2,int16_t x_lb2,int16_t vx_ub2,int16_t y_ub3,int16_t y_lb3,int16_t vy_ub3,int16_t x_ub3,int16_t x_lb3,int16_t vx_ub3,int16_t y_ub4,int16_t y_lb4,int16_t vy_ub4,int16_t x_ub4,int16_t x_lb4,int16_t vx_ub4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_PARAMS_LEN];
 	_mav_put_float(buf, 0, roll_lb);
-	_mav_put_uint16_t(buf, 4, abraking);
+	_mav_put_int16_t(buf, 4, abraking);
 	_mav_put_uint16_t(buf, 6, mid_throttle);
-	_mav_put_uint16_t(buf, 8, y_ub1);
-	_mav_put_uint16_t(buf, 10, y_lb1);
-	_mav_put_uint16_t(buf, 12, vy_ub1);
-	_mav_put_uint16_t(buf, 14, x_ub1);
-	_mav_put_uint16_t(buf, 16, x_lb1);
-	_mav_put_uint16_t(buf, 18, vx_ub1);
-	_mav_put_uint16_t(buf, 20, y_ub2);
-	_mav_put_uint16_t(buf, 22, y_lb2);
-	_mav_put_uint16_t(buf, 24, vy_ub2);
-	_mav_put_uint16_t(buf, 26, x_ub2);
-	_mav_put_uint16_t(buf, 28, x_lb2);
-	_mav_put_uint16_t(buf, 30, vx_ub2);
-	_mav_put_uint16_t(buf, 32, y_ub3);
-	_mav_put_uint16_t(buf, 34, y_lb3);
-	_mav_put_uint16_t(buf, 36, vy_ub3);
-	_mav_put_uint16_t(buf, 38, x_ub3);
-	_mav_put_uint16_t(buf, 40, x_lb3);
-	_mav_put_uint16_t(buf, 42, vx_ub3);
-	_mav_put_uint16_t(buf, 44, y_ub4);
-	_mav_put_uint16_t(buf, 46, y_lb4);
-	_mav_put_uint16_t(buf, 48, vy_ub4);
-	_mav_put_uint16_t(buf, 50, x_ub4);
-	_mav_put_uint16_t(buf, 52, x_lb4);
-	_mav_put_uint16_t(buf, 54, vx_ub4);
+	_mav_put_int16_t(buf, 8, y_ub1);
+	_mav_put_int16_t(buf, 10, y_lb1);
+	_mav_put_int16_t(buf, 12, vy_ub1);
+	_mav_put_int16_t(buf, 14, x_ub1);
+	_mav_put_int16_t(buf, 16, x_lb1);
+	_mav_put_int16_t(buf, 18, vx_ub1);
+	_mav_put_int16_t(buf, 20, y_ub2);
+	_mav_put_int16_t(buf, 22, y_lb2);
+	_mav_put_int16_t(buf, 24, vy_ub2);
+	_mav_put_int16_t(buf, 26, x_ub2);
+	_mav_put_int16_t(buf, 28, x_lb2);
+	_mav_put_int16_t(buf, 30, vx_ub2);
+	_mav_put_int16_t(buf, 32, y_ub3);
+	_mav_put_int16_t(buf, 34, y_lb3);
+	_mav_put_int16_t(buf, 36, vy_ub3);
+	_mav_put_int16_t(buf, 38, x_ub3);
+	_mav_put_int16_t(buf, 40, x_lb3);
+	_mav_put_int16_t(buf, 42, vx_ub3);
+	_mav_put_int16_t(buf, 44, y_ub4);
+	_mav_put_int16_t(buf, 46, y_lb4);
+	_mav_put_int16_t(buf, 48, vy_ub4);
+	_mav_put_int16_t(buf, 50, x_ub4);
+	_mav_put_int16_t(buf, 52, x_lb4);
+	_mav_put_int16_t(buf, 54, vx_ub4);
 	_mav_put_uint8_t(buf, 56, smooth);
 	_mav_put_uint8_t(buf, 57, lookahead);
 
@@ -375,37 +375,37 @@ static inline uint16_t mavlink_msg_shim_params_encode_chan(uint8_t system_id, ui
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_shim_params_send(mavlink_channel_t chan, uint8_t smooth, uint8_t lookahead, float roll_lb, uint16_t abraking, uint16_t mid_throttle, uint16_t y_ub1, uint16_t y_lb1, uint16_t vy_ub1, uint16_t x_ub1, uint16_t x_lb1, uint16_t vx_ub1, uint16_t y_ub2, uint16_t y_lb2, uint16_t vy_ub2, uint16_t x_ub2, uint16_t x_lb2, uint16_t vx_ub2, uint16_t y_ub3, uint16_t y_lb3, uint16_t vy_ub3, uint16_t x_ub3, uint16_t x_lb3, uint16_t vx_ub3, uint16_t y_ub4, uint16_t y_lb4, uint16_t vy_ub4, uint16_t x_ub4, uint16_t x_lb4, uint16_t vx_ub4)
+static inline void mavlink_msg_shim_params_send(mavlink_channel_t chan, uint8_t smooth, uint8_t lookahead, float roll_lb, int16_t abraking, uint16_t mid_throttle, int16_t y_ub1, int16_t y_lb1, int16_t vy_ub1, int16_t x_ub1, int16_t x_lb1, int16_t vx_ub1, int16_t y_ub2, int16_t y_lb2, int16_t vy_ub2, int16_t x_ub2, int16_t x_lb2, int16_t vx_ub2, int16_t y_ub3, int16_t y_lb3, int16_t vy_ub3, int16_t x_ub3, int16_t x_lb3, int16_t vx_ub3, int16_t y_ub4, int16_t y_lb4, int16_t vy_ub4, int16_t x_ub4, int16_t x_lb4, int16_t vx_ub4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_PARAMS_LEN];
 	_mav_put_float(buf, 0, roll_lb);
-	_mav_put_uint16_t(buf, 4, abraking);
+	_mav_put_int16_t(buf, 4, abraking);
 	_mav_put_uint16_t(buf, 6, mid_throttle);
-	_mav_put_uint16_t(buf, 8, y_ub1);
-	_mav_put_uint16_t(buf, 10, y_lb1);
-	_mav_put_uint16_t(buf, 12, vy_ub1);
-	_mav_put_uint16_t(buf, 14, x_ub1);
-	_mav_put_uint16_t(buf, 16, x_lb1);
-	_mav_put_uint16_t(buf, 18, vx_ub1);
-	_mav_put_uint16_t(buf, 20, y_ub2);
-	_mav_put_uint16_t(buf, 22, y_lb2);
-	_mav_put_uint16_t(buf, 24, vy_ub2);
-	_mav_put_uint16_t(buf, 26, x_ub2);
-	_mav_put_uint16_t(buf, 28, x_lb2);
-	_mav_put_uint16_t(buf, 30, vx_ub2);
-	_mav_put_uint16_t(buf, 32, y_ub3);
-	_mav_put_uint16_t(buf, 34, y_lb3);
-	_mav_put_uint16_t(buf, 36, vy_ub3);
-	_mav_put_uint16_t(buf, 38, x_ub3);
-	_mav_put_uint16_t(buf, 40, x_lb3);
-	_mav_put_uint16_t(buf, 42, vx_ub3);
-	_mav_put_uint16_t(buf, 44, y_ub4);
-	_mav_put_uint16_t(buf, 46, y_lb4);
-	_mav_put_uint16_t(buf, 48, vy_ub4);
-	_mav_put_uint16_t(buf, 50, x_ub4);
-	_mav_put_uint16_t(buf, 52, x_lb4);
-	_mav_put_uint16_t(buf, 54, vx_ub4);
+	_mav_put_int16_t(buf, 8, y_ub1);
+	_mav_put_int16_t(buf, 10, y_lb1);
+	_mav_put_int16_t(buf, 12, vy_ub1);
+	_mav_put_int16_t(buf, 14, x_ub1);
+	_mav_put_int16_t(buf, 16, x_lb1);
+	_mav_put_int16_t(buf, 18, vx_ub1);
+	_mav_put_int16_t(buf, 20, y_ub2);
+	_mav_put_int16_t(buf, 22, y_lb2);
+	_mav_put_int16_t(buf, 24, vy_ub2);
+	_mav_put_int16_t(buf, 26, x_ub2);
+	_mav_put_int16_t(buf, 28, x_lb2);
+	_mav_put_int16_t(buf, 30, vx_ub2);
+	_mav_put_int16_t(buf, 32, y_ub3);
+	_mav_put_int16_t(buf, 34, y_lb3);
+	_mav_put_int16_t(buf, 36, vy_ub3);
+	_mav_put_int16_t(buf, 38, x_ub3);
+	_mav_put_int16_t(buf, 40, x_lb3);
+	_mav_put_int16_t(buf, 42, vx_ub3);
+	_mav_put_int16_t(buf, 44, y_ub4);
+	_mav_put_int16_t(buf, 46, y_lb4);
+	_mav_put_int16_t(buf, 48, vy_ub4);
+	_mav_put_int16_t(buf, 50, x_ub4);
+	_mav_put_int16_t(buf, 52, x_lb4);
+	_mav_put_int16_t(buf, 54, vx_ub4);
 	_mav_put_uint8_t(buf, 56, smooth);
 	_mav_put_uint8_t(buf, 57, lookahead);
 
@@ -462,37 +462,37 @@ static inline void mavlink_msg_shim_params_send(mavlink_channel_t chan, uint8_t 
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
-static inline void mavlink_msg_shim_params_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t smooth, uint8_t lookahead, float roll_lb, uint16_t abraking, uint16_t mid_throttle, uint16_t y_ub1, uint16_t y_lb1, uint16_t vy_ub1, uint16_t x_ub1, uint16_t x_lb1, uint16_t vx_ub1, uint16_t y_ub2, uint16_t y_lb2, uint16_t vy_ub2, uint16_t x_ub2, uint16_t x_lb2, uint16_t vx_ub2, uint16_t y_ub3, uint16_t y_lb3, uint16_t vy_ub3, uint16_t x_ub3, uint16_t x_lb3, uint16_t vx_ub3, uint16_t y_ub4, uint16_t y_lb4, uint16_t vy_ub4, uint16_t x_ub4, uint16_t x_lb4, uint16_t vx_ub4)
+static inline void mavlink_msg_shim_params_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t smooth, uint8_t lookahead, float roll_lb, int16_t abraking, uint16_t mid_throttle, int16_t y_ub1, int16_t y_lb1, int16_t vy_ub1, int16_t x_ub1, int16_t x_lb1, int16_t vx_ub1, int16_t y_ub2, int16_t y_lb2, int16_t vy_ub2, int16_t x_ub2, int16_t x_lb2, int16_t vx_ub2, int16_t y_ub3, int16_t y_lb3, int16_t vy_ub3, int16_t x_ub3, int16_t x_lb3, int16_t vx_ub3, int16_t y_ub4, int16_t y_lb4, int16_t vy_ub4, int16_t x_ub4, int16_t x_lb4, int16_t vx_ub4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char *buf = (char *)msgbuf;
 	_mav_put_float(buf, 0, roll_lb);
-	_mav_put_uint16_t(buf, 4, abraking);
+	_mav_put_int16_t(buf, 4, abraking);
 	_mav_put_uint16_t(buf, 6, mid_throttle);
-	_mav_put_uint16_t(buf, 8, y_ub1);
-	_mav_put_uint16_t(buf, 10, y_lb1);
-	_mav_put_uint16_t(buf, 12, vy_ub1);
-	_mav_put_uint16_t(buf, 14, x_ub1);
-	_mav_put_uint16_t(buf, 16, x_lb1);
-	_mav_put_uint16_t(buf, 18, vx_ub1);
-	_mav_put_uint16_t(buf, 20, y_ub2);
-	_mav_put_uint16_t(buf, 22, y_lb2);
-	_mav_put_uint16_t(buf, 24, vy_ub2);
-	_mav_put_uint16_t(buf, 26, x_ub2);
-	_mav_put_uint16_t(buf, 28, x_lb2);
-	_mav_put_uint16_t(buf, 30, vx_ub2);
-	_mav_put_uint16_t(buf, 32, y_ub3);
-	_mav_put_uint16_t(buf, 34, y_lb3);
-	_mav_put_uint16_t(buf, 36, vy_ub3);
-	_mav_put_uint16_t(buf, 38, x_ub3);
-	_mav_put_uint16_t(buf, 40, x_lb3);
-	_mav_put_uint16_t(buf, 42, vx_ub3);
-	_mav_put_uint16_t(buf, 44, y_ub4);
-	_mav_put_uint16_t(buf, 46, y_lb4);
-	_mav_put_uint16_t(buf, 48, vy_ub4);
-	_mav_put_uint16_t(buf, 50, x_ub4);
-	_mav_put_uint16_t(buf, 52, x_lb4);
-	_mav_put_uint16_t(buf, 54, vx_ub4);
+	_mav_put_int16_t(buf, 8, y_ub1);
+	_mav_put_int16_t(buf, 10, y_lb1);
+	_mav_put_int16_t(buf, 12, vy_ub1);
+	_mav_put_int16_t(buf, 14, x_ub1);
+	_mav_put_int16_t(buf, 16, x_lb1);
+	_mav_put_int16_t(buf, 18, vx_ub1);
+	_mav_put_int16_t(buf, 20, y_ub2);
+	_mav_put_int16_t(buf, 22, y_lb2);
+	_mav_put_int16_t(buf, 24, vy_ub2);
+	_mav_put_int16_t(buf, 26, x_ub2);
+	_mav_put_int16_t(buf, 28, x_lb2);
+	_mav_put_int16_t(buf, 30, vx_ub2);
+	_mav_put_int16_t(buf, 32, y_ub3);
+	_mav_put_int16_t(buf, 34, y_lb3);
+	_mav_put_int16_t(buf, 36, vy_ub3);
+	_mav_put_int16_t(buf, 38, x_ub3);
+	_mav_put_int16_t(buf, 40, x_lb3);
+	_mav_put_int16_t(buf, 42, vx_ub3);
+	_mav_put_int16_t(buf, 44, y_ub4);
+	_mav_put_int16_t(buf, 46, y_lb4);
+	_mav_put_int16_t(buf, 48, vy_ub4);
+	_mav_put_int16_t(buf, 50, x_ub4);
+	_mav_put_int16_t(buf, 52, x_lb4);
+	_mav_put_int16_t(buf, 54, vx_ub4);
 	_mav_put_uint8_t(buf, 56, smooth);
 	_mav_put_uint8_t(buf, 57, lookahead);
 
@@ -582,9 +582,9 @@ static inline float mavlink_msg_shim_params_get_roll_lb(const mavlink_message_t*
  *
  * @return The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.
  */
-static inline uint16_t mavlink_msg_shim_params_get_abraking(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_abraking(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  4);
+	return _MAV_RETURN_int16_t(msg,  4);
 }
 
 /**
@@ -602,9 +602,9 @@ static inline uint16_t mavlink_msg_shim_params_get_mid_throttle(const mavlink_me
  *
  * @return the height upper bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_ub1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_ub1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  8);
+	return _MAV_RETURN_int16_t(msg,  8);
 }
 
 /**
@@ -612,9 +612,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_ub1(const mavlink_message_t
  *
  * @return the height lower bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_lb1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_lb1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  10);
+	return _MAV_RETURN_int16_t(msg,  10);
 }
 
 /**
@@ -622,9 +622,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_lb1(const mavlink_message_t
  *
  * @return the vertical velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vy_ub1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vy_ub1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  12);
+	return _MAV_RETURN_int16_t(msg,  12);
 }
 
 /**
@@ -632,9 +632,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vy_ub1(const mavlink_message_
  *
  * @return the upper bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_ub1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_ub1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  14);
+	return _MAV_RETURN_int16_t(msg,  14);
 }
 
 /**
@@ -642,9 +642,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_ub1(const mavlink_message_t
  *
  * @return the lower bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_lb1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_lb1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  16);
+	return _MAV_RETURN_int16_t(msg,  16);
 }
 
 /**
@@ -652,9 +652,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_lb1(const mavlink_message_t
  *
  * @return the "x" dimension velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vx_ub1(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vx_ub1(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  18);
+	return _MAV_RETURN_int16_t(msg,  18);
 }
 
 /**
@@ -662,9 +662,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vx_ub1(const mavlink_message_
  *
  * @return the height upper bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_ub2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_ub2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  20);
+	return _MAV_RETURN_int16_t(msg,  20);
 }
 
 /**
@@ -672,9 +672,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_ub2(const mavlink_message_t
  *
  * @return the height lower bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_lb2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_lb2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  22);
+	return _MAV_RETURN_int16_t(msg,  22);
 }
 
 /**
@@ -682,9 +682,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_lb2(const mavlink_message_t
  *
  * @return the vertical velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vy_ub2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vy_ub2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  24);
+	return _MAV_RETURN_int16_t(msg,  24);
 }
 
 /**
@@ -692,9 +692,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vy_ub2(const mavlink_message_
  *
  * @return the upper bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_ub2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_ub2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  26);
+	return _MAV_RETURN_int16_t(msg,  26);
 }
 
 /**
@@ -702,9 +702,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_ub2(const mavlink_message_t
  *
  * @return the lower bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_lb2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_lb2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  28);
+	return _MAV_RETURN_int16_t(msg,  28);
 }
 
 /**
@@ -712,9 +712,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_lb2(const mavlink_message_t
  *
  * @return the "x" dimension velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vx_ub2(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vx_ub2(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  30);
+	return _MAV_RETURN_int16_t(msg,  30);
 }
 
 /**
@@ -722,9 +722,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vx_ub2(const mavlink_message_
  *
  * @return the height upper bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_ub3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_ub3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  32);
+	return _MAV_RETURN_int16_t(msg,  32);
 }
 
 /**
@@ -732,9 +732,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_ub3(const mavlink_message_t
  *
  * @return the height lower bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_lb3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_lb3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  34);
+	return _MAV_RETURN_int16_t(msg,  34);
 }
 
 /**
@@ -742,9 +742,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_lb3(const mavlink_message_t
  *
  * @return the vertical velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vy_ub3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vy_ub3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  36);
+	return _MAV_RETURN_int16_t(msg,  36);
 }
 
 /**
@@ -752,9 +752,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vy_ub3(const mavlink_message_
  *
  * @return the upper bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_ub3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_ub3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  38);
+	return _MAV_RETURN_int16_t(msg,  38);
 }
 
 /**
@@ -762,9 +762,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_ub3(const mavlink_message_t
  *
  * @return the lower bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_lb3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_lb3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  40);
+	return _MAV_RETURN_int16_t(msg,  40);
 }
 
 /**
@@ -772,9 +772,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_lb3(const mavlink_message_t
  *
  * @return the "x" dimension velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vx_ub3(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vx_ub3(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  42);
+	return _MAV_RETURN_int16_t(msg,  42);
 }
 
 /**
@@ -782,9 +782,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vx_ub3(const mavlink_message_
  *
  * @return the height upper bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_ub4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_ub4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  44);
+	return _MAV_RETURN_int16_t(msg,  44);
 }
 
 /**
@@ -792,9 +792,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_ub4(const mavlink_message_t
  *
  * @return the height lower bound of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_y_lb4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_y_lb4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  46);
+	return _MAV_RETURN_int16_t(msg,  46);
 }
 
 /**
@@ -802,9 +802,9 @@ static inline uint16_t mavlink_msg_shim_params_get_y_lb4(const mavlink_message_t
  *
  * @return the vertical velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vy_ub4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vy_ub4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  48);
+	return _MAV_RETURN_int16_t(msg,  48);
 }
 
 /**
@@ -812,9 +812,9 @@ static inline uint16_t mavlink_msg_shim_params_get_vy_ub4(const mavlink_message_
  *
  * @return the upper bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_ub4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_ub4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  50);
+	return _MAV_RETURN_int16_t(msg,  50);
 }
 
 /**
@@ -822,9 +822,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_ub4(const mavlink_message_t
  *
  * @return the lower bound for the "x" dimension of the shim in cm
  */
-static inline uint16_t mavlink_msg_shim_params_get_x_lb4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_x_lb4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  52);
+	return _MAV_RETURN_int16_t(msg,  52);
 }
 
 /**
@@ -832,9 +832,9 @@ static inline uint16_t mavlink_msg_shim_params_get_x_lb4(const mavlink_message_t
  *
  * @return the "x" dimension velocity upper bound of the shim in cm/s
  */
-static inline uint16_t mavlink_msg_shim_params_get_vx_ub4(const mavlink_message_t* msg)
+static inline int16_t mavlink_msg_shim_params_get_vx_ub4(const mavlink_message_t* msg)
 {
-	return _MAV_RETURN_uint16_t(msg,  54);
+	return _MAV_RETURN_int16_t(msg,  54);
 }
 
 /**

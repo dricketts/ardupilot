@@ -475,36 +475,36 @@
       <field type="uint8_t" name="smooth">1 to enable smoothing, 0 to disable</field>
       <field type="uint8_t" name="lookahead">lookahead factor for the smoothing shim</field>
       <field type="float" name="roll_lb">the lower bound on roll angle allowed by the shim in (??DEGREES??)</field>
-      <field type="uint16_t" name="abraking">The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.</field>
+      <field type="int16_t" name="abraking">The braking acceleration in cm/s/s issued when the height-dimension shim is engaged. Should be at least the acceleration due to gravity.</field>
       <field type="uint16_t" name="mid_throttle">The throttle required for hover.</field>
 
-      <field type="uint16_t" name="y_ub1">the height upper bound of the shim in cm</field>
-      <field type="uint16_t" name="y_lb1">the height lower bound of the shim in cm</field>
-      <field type="uint16_t" name="vy_ub1">the vertical velocity upper bound of the shim in cm/s</field>
-      <field type="uint16_t" name="x_ub1">the upper bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="x_lb1">the lower bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="vx_ub1">the "x" dimension velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="y_ub1">the height upper bound of the shim in cm</field>
+      <field type="int16_t" name="y_lb1">the height lower bound of the shim in cm</field>
+      <field type="int16_t" name="vy_ub1">the vertical velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="x_ub1">the upper bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="x_lb1">the lower bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="vx_ub1">the "x" dimension velocity upper bound of the shim in cm/s</field>
 
-      <field type="uint16_t" name="y_ub2">the height upper bound of the shim in cm</field>
-      <field type="uint16_t" name="y_lb2">the height lower bound of the shim in cm</field>
-      <field type="uint16_t" name="vy_ub2">the vertical velocity upper bound of the shim in cm/s</field>
-      <field type="uint16_t" name="x_ub2">the upper bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="x_lb2">the lower bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="vx_ub2">the "x" dimension velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="y_ub2">the height upper bound of the shim in cm</field>
+      <field type="int16_t" name="y_lb2">the height lower bound of the shim in cm</field>
+      <field type="int16_t" name="vy_ub2">the vertical velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="x_ub2">the upper bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="x_lb2">the lower bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="vx_ub2">the "x" dimension velocity upper bound of the shim in cm/s</field>
 
-      <field type="uint16_t" name="y_ub3">the height upper bound of the shim in cm</field>
-      <field type="uint16_t" name="y_lb3">the height lower bound of the shim in cm</field>
-      <field type="uint16_t" name="vy_ub3">the vertical velocity upper bound of the shim in cm/s</field>
-      <field type="uint16_t" name="x_ub3">the upper bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="x_lb3">the lower bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="vx_ub3">the "x" dimension velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="y_ub3">the height upper bound of the shim in cm</field>
+      <field type="int16_t" name="y_lb3">the height lower bound of the shim in cm</field>
+      <field type="int16_t" name="vy_ub3">the vertical velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="x_ub3">the upper bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="x_lb3">the lower bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="vx_ub3">the "x" dimension velocity upper bound of the shim in cm/s</field>
 
-      <field type="uint16_t" name="y_ub4">the height upper bound of the shim in cm</field>
-      <field type="uint16_t" name="y_lb4">the height lower bound of the shim in cm</field>
-      <field type="uint16_t" name="vy_ub4">the vertical velocity upper bound of the shim in cm/s</field>
-      <field type="uint16_t" name="x_ub4">the upper bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="x_lb4">the lower bound for the "x" dimension of the shim in cm</field>
-      <field type="uint16_t" name="vx_ub4">the "x" dimension velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="y_ub4">the height upper bound of the shim in cm</field>
+      <field type="int16_t" name="y_lb4">the height lower bound of the shim in cm</field>
+      <field type="int16_t" name="vy_ub4">the vertical velocity upper bound of the shim in cm/s</field>
+      <field type="int16_t" name="x_ub4">the upper bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="x_lb4">the lower bound for the "x" dimension of the shim in cm</field>
+      <field type="int16_t" name="vx_ub4">the "x" dimension velocity upper bound of the shim in cm/s</field>
   </message>
 
     <!-- message for shim to report back its status -->
