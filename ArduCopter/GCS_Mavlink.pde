@@ -169,9 +169,9 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
 
     mavlink_msg_shim_stats_send(chan,
                                 stats.can_run.count(1) == 1 ? stats.can_run[1] : 2,
-                                stats.can_run.count(2) == 1 ? stats.can_run[1] : 2,
-                                stats.can_run.count(3) == 1 ? stats.can_run[1] : 2,
-                                stats.can_run.count(4) == 1 ? stats.can_run[1] : 2,
+                                stats.can_run.count(2) == 1 ? stats.can_run[2] : 2,
+                                stats.can_run.count(3) == 1 ? stats.can_run[3] : 2,
+                                stats.can_run.count(4) == 1 ? stats.can_run[4] : 2,
                                 stats.x,
                                 stats.y,
                                 stats.vx,
