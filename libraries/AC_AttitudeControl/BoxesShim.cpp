@@ -78,22 +78,42 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   float a;
   float theta;
 
+  bool ran_shim = false;
+
+  control_in safe;
+  bool is_safe = false;
+
   for (std::map<uint8_t,BoxShim>::iterator it = _boxes.begin(); it != _boxes.end(); ++it) {
     BoxShim box = it->second;
     bool can_run = box.can_run(st);
     _stats.can_run[it->first] = can_run;
 
     if (can_run) {
-      control_in safe = box.monitor(proposed, st);
+      ran_shim = true;
+      _last_shim_id = it->first;
 
-      if (shim_on() && safe.updated) {
-	params.roll = degrees(safe.theta)*100.0f;
-	params.throttle = get_throttle_from_acc(safe.a);
-	params.angle_boost = false;
-      }
+      safe = box.monitor(proposed, st);
+      is_safe = is_safe || !safe.updated; 
 
-      break;
     }
+  }
+
+  if (shim_on() && ran_shim && !is_safe) {
+      params.roll = degrees(safe.theta)*100.0f;
+      params.throttle = get_throttle_from_acc(safe.a);
+      params.angle_boost = false;
+  }
+
+  if (!ran_shim && _boxes.count(_last_shim_id) == 1) {
+    // run the last shim that intervened
+    control_in ctrl = _boxes[_last_shim_id].monitor(proposed, st);
+
+    if (shim_on()) {
+      params.roll = degrees(ctrl.theta)*100.0f;
+      params.throttle = get_throttle_from_acc(ctrl.a);
+      params.angle_boost = false;
+    }
+
   }
 
   _stats.theta = radians(wrap_180_cd_float(params.roll)/100.0f);

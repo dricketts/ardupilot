@@ -85,6 +85,8 @@ class BoxesShim : public AC_AttitudeShim {
 
   shim_stats _stats;
 
+  uint8_t _last_shim_id;
+
   const AP_InertialNav& _inav;
 };
 

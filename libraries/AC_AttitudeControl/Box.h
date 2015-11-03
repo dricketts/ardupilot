@@ -128,6 +128,12 @@ class BoxShim {
   //
   box_shim_stats get_shim_stats() {return _stats;}
 
+  /*
+   * Returns polar coordinates such that A >= 0
+   * -PI <= theta <= PI
+   */
+  static control_in rect_to_polar (float x, float y);
+
  private:
 
   void attitude_shim_entry_point(Att_shim_params params, bool first_call);
@@ -188,12 +194,6 @@ class BoxShim {
    */
   float default_rect_action_one_dim(float y, float v,
 				    float amin);
-
-  /*
-   * Returns polar coordinates such that A >= 0
-   * -PI <= theta <= PI
-   */
-  control_in rect_to_polar (float x, float y);
 
   /*
    * The safety check for the velocity monitor.
