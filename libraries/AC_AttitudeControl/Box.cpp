@@ -3,12 +3,6 @@
 #include "AC_AttitudeShim.h"
 #include "AP_Math.h"
 
-extern const AP_HAL::HAL& hal;
-
-#define PRINTERVAL 1000
-
-#define iprintf(...) if(printerval == 0) hal.console->printf(__VA_ARGS__)
-
 /*
  * Distance traveled with initial velocity V,
  * acceleration a, for time t

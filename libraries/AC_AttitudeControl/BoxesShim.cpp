@@ -34,7 +34,7 @@ float BoxesShim::get_throttle_from_acc(float A) {
 }
 
 void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_call) {
-
+  
   //_params = {-500.0f, 10000.0f, -10000.0f, 6000.0f, -2000.0f, 500.0f, -500.0f, 500.0f, -500.0f, -(M_PI + 0.0f)/4.0f };
 
   static float roll = 0.0f;
@@ -83,18 +83,20 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   control_in safe;
   bool is_safe = false;
 
-  for (std::map<uint8_t,BoxShim>::iterator it = _boxes.begin(); it != _boxes.end(); ++it) {
-    BoxShim box = it->second;
-    bool can_run = box.can_run(st);
-    _stats.can_run[it->first] = can_run;
-
-    if (can_run) {
-      ran_shim = true;
-      _last_shim_id = it->first;
-
-      safe = box.monitor(proposed, st);
-      is_safe = is_safe || !safe.updated; 
-
+  for (uint8_t i = 1; i <= _boxes.size(); i++) {
+    if (_boxes.has_box(i)) {
+      BoxShim box = _boxes.get(i);
+      bool can_run = box.can_run(st);
+      set_can_run(i, can_run);
+    
+      if (can_run) {
+	ran_shim = true;
+	_last_shim_id = i;
+      
+	safe = box.monitor(proposed, st);
+	is_safe = is_safe || !safe.updated; 
+      
+      }
     }
   }
 
@@ -104,9 +106,9 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
       params.angle_boost = false;
   }
 
-  if (!ran_shim && _boxes.count(_last_shim_id) == 1) {
+  if (!ran_shim && has_box(_last_shim_id)) {
     // run the last shim that intervened
-    control_in ctrl = _boxes[_last_shim_id].monitor(proposed, st);
+    control_in ctrl = _boxes.get(_last_shim_id).monitor(proposed, st);
 
     if (shim_on()) {
       params.roll = degrees(ctrl.theta)*100.0f;
@@ -145,7 +147,7 @@ void BoxesShim::add_box(const uint8_t id, const float y_ub, const float y_lb, co
     box.set_d_ctrl(d_ctrl);
     box.set_smooth(smooth);
     
-    _boxes[id] = box;
+    _boxes.set(id, box);
 }
 
 void BoxesShim::clear_boxes() {
@@ -153,9 +155,22 @@ void BoxesShim::clear_boxes() {
 }
 
 BoxShim BoxesShim::get_box(const uint8_t id) {
-  return _boxes[id];
+  return _boxes.get(id);
 }
 
 bool BoxesShim::has_box(const uint8_t id) {
-  return _boxes.count(id) == 1;
+  return _boxes.has_box(id);
+}
+
+void BoxesShim::set_can_run(uint8_t id, bool can_run) {
+  if (id == 1) {
+    _stats.can_run1 = can_run;
+  } else if (id == 2) {
+    _stats.can_run2 = can_run;
+  } else if (id == 3) {
+    _stats.can_run3 = can_run;
+  } else if (id == 4) {
+    _stats.can_run4 = can_run;
+  }
+
 }

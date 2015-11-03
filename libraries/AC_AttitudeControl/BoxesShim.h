@@ -1,7 +1,6 @@
 #ifndef Boxes_H
 #define Boxes_H
 
-#include <map>
 #include <math.h>
 #include <AP_Math.h>
 #include <vectorN.h>
@@ -9,9 +8,13 @@
 #include "AC_AttitudeControl.h"
 #include "AC_AttitudeShim.h"
 #include "Box.h"
+#include "BoxCollection.h"
 
 struct shim_stats {
-  std::map<uint8_t, bool> can_run;
+  bool can_run1;
+  bool can_run2;
+  bool can_run3;
+  bool can_run4;
   float x;
   float y;
   float vx;
@@ -74,7 +77,9 @@ class BoxesShim : public AC_AttitudeShim {
   float get_acc_from_throttle(float throttle);
   float get_throttle_from_acc(float A);
 
-  std::map<uint8_t, BoxShim> _boxes;
+  BoxCollection _boxes;
+
+  void set_can_run(uint8_t id, bool can_run);
 
   // for actual shim
   // is the shim on?
