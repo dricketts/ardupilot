@@ -674,8 +674,7 @@ AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_st
 // AC_AttitudeShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
 //                                  g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);
 BoxesShim attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
-                            g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw, THROTTLE_CRUISE, SHIM_DELAY,
-                            inertial_nav);
+                            g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw, THROTTLE_CRUISE, inertial_nav);
 // #else
 // AC_AttitudeControl attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
 //                        g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw);

@@ -129,6 +129,7 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
         BoxShim box4 = attitude_control.get_box(4);
 
         mavlink_msg_shim_params_send(chan,
+                                     box1.d_ctrl(),
                                      box1.smooth(),
                                      box1.lookahead(),
                                      box1.roll_lb(),
@@ -955,6 +956,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         mavlink_msg_shim_params_decode(msg, &packet);
         attitude_control.set_mid_throttle(packet.mid_throttle);
 
+        float d_ctrl = packet.d_ctrl;
         bool smooth = packet.smooth;
         uint8_t lookahead = packet.lookahead;
         float roll_lb = packet.roll_lb;
@@ -964,19 +966,19 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
         attitude_control.add_box(1, packet.y_ub1, packet.y_lb1, packet.vy_ub1, -packet.vy_ub1,
                                  packet.x_ub1, packet.x_lb1, packet.vx_ub1, -packet.vx_ub1,
-                                 roll_lb, abraking, smooth, lookahead);
+                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
 
         attitude_control.add_box(2, packet.y_ub2, packet.y_lb2, packet.vy_ub2, -packet.vy_ub2,
                                  packet.x_ub2, packet.x_lb2, packet.vx_ub2, -packet.vx_ub2,
-                                 roll_lb, abraking, smooth, lookahead);
+                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
 
         attitude_control.add_box(3, packet.y_ub3, packet.y_lb3, packet.vy_ub3, -packet.vy_ub3,
                                  packet.x_ub3, packet.x_lb3, packet.vx_ub3, -packet.vx_ub3,
-                                 roll_lb, abraking, smooth, lookahead);
+                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
 
         attitude_control.add_box(4, packet.y_ub4, packet.y_lb4, packet.vy_ub4, -packet.vy_ub4,
                                  packet.x_ub4, packet.x_lb4, packet.vx_ub4, -packet.vx_ub4,
-                                 roll_lb, abraking, smooth, lookahead);
+                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
 #endif
         break;
     }

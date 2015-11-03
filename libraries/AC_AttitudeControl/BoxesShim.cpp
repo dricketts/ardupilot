@@ -127,7 +127,8 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
 
 void BoxesShim::add_box(const uint8_t id, const float y_ub, const float y_lb, const float vy_ub, const float vy_lb,
 			const float x_ub, const float x_lb, const float vx_ub, const float vx_lb,
-			const float roll_lb, const float abraking, const bool smooth, const float lookahead) {
+			const float roll_lb, const float abraking, const bool smooth, const float lookahead,
+			const float d_ctrl) {
 
     BoxShim box;
     box.set_y_ub(y_ub);
@@ -141,7 +142,7 @@ void BoxesShim::add_box(const uint8_t id, const float y_ub, const float y_lb, co
     box.set_roll_lb(roll_lb);
     box.set_abraking(abraking);
     box.set_lookahead(lookahead);
-    box.set_d_ctrl(_d_ctrl);
+    box.set_d_ctrl(d_ctrl);
     box.set_smooth(smooth);
     
     _boxes[id] = box;

@@ -472,6 +472,7 @@
     -->
     <message name="SHIM_PARAMS" id="231">
       <description>Command to set various options of the shim</description>
+      <field type="float" name="d_ctrl">1 to enable smoothing, 0 to disable</field>
       <field type="uint8_t" name="smooth">1 to enable smoothing, 0 to disable</field>
       <field type="uint8_t" name="lookahead">lookahead factor for the smoothing shim</field>
       <field type="float" name="roll_lb">the lower bound on roll angle allowed by the shim in (??DEGREES??)</field>

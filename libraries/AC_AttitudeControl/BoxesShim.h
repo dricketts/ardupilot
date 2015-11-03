@@ -31,12 +31,11 @@ class BoxesShim : public AC_AttitudeShim {
 	  AP_Motors& motors,
 	  AC_P& pi_angle_roll, AC_P& pi_angle_pitch, AC_P& pi_angle_yaw,
 	  AC_PID& pid_rate_roll, AC_PID& pid_rate_pitch, AC_PID& pid_rate_yaw,
-          float mid_throttle, float d_ctrl, const AP_InertialNav& inav
+          float mid_throttle, const AP_InertialNav& inav
 	  ) :
   AC_AttitudeShim(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
 		  pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
     _mid_throttle(mid_throttle),
-    _d_ctrl(d_ctrl),
     _inav(inav)
     {
     };
@@ -48,7 +47,8 @@ class BoxesShim : public AC_AttitudeShim {
 
   void add_box(const uint8_t id, const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
 	       const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
-		 const float roll_lb, const float abraking, const bool smooth, const float lookahead);
+	       const float roll_lb, const float abraking, const bool smooth, const float lookahead,
+	       const float d_ctrl);
   void clear_boxes();
 
   BoxShim get_box(const uint8_t id);
@@ -79,8 +79,6 @@ class BoxesShim : public AC_AttitudeShim {
   // for actual shim
   // is the shim on?
   bool _shim_on;
-  // delay associated with actuators
-  const float _d_ctrl;
   float _mid_throttle;
 
   shim_stats _stats;

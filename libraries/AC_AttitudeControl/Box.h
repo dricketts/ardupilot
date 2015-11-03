@@ -110,6 +110,7 @@ class BoxShim {
   void set_d_ctrl(float d_ctrl) {_d_ctrl = d_ctrl;}
   void set_smooth(bool smooth) {_smooth = smooth;}
 
+  float d_ctrl() {return _d_ctrl;}
   bool smooth() {return _smooth;}
   float y_ub() {return _y_ub;}
   float y_lb() {return _y_lb;}
