@@ -1,5 +1,11 @@
 #include "BoxesShim.h"
 
+static float cin_diff(control_in cin1, control_in cin2) {
+  float r1 = cin1.a;
+  float r2 = cin2.a;
+  return r1 * r1 + r2 * r2 - 2 * r1 * r2 * cos (cin1.theta - cin2.theta);
+}
+
 float BoxesShim::get_x() {
   return _inav.get_position().y;
 }
@@ -78,10 +84,9 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   float a;
   float theta;
 
-  bool ran_shim = false;
-
-  control_in safe;
-  bool is_safe = false;
+  bool shim_engaged = false;
+  control_in actual;
+  bool first = true;
 
   for (uint8_t i = 1; i <= _boxes.size(); i++) {
     if (_boxes.has_box(i)) {
@@ -90,34 +95,35 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
       set_can_run(i, can_run);
     
       if (can_run) {
-	ran_shim = true;
-	_last_shim_id = i;
+	shim_engaged = true;
       
-	safe = box.monitor(proposed, st);
-	is_safe = is_safe || !safe.updated; 
-      
+	control_in check = box.monitor(proposed, st);
+	if (first || cin_diff(check, proposed) < cin_diff(actual, proposed)) {
+	  actual = check;
+	  first = false;
+	  _last_shim_id = i;
+	}
       }
     }
   }
-
-  if (shim_on() && ran_shim && !is_safe) {
-      params.roll = degrees(safe.theta)*100.0f;
-      params.throttle = get_throttle_from_acc(safe.a);
-      params.angle_boost = false;
-  }
-
-  if (!ran_shim && has_box(_last_shim_id)) {
+  
+  // None of the shims are enabled, we default to the
+  // last shim that was used.
+  if (!shim_engaged && has_box(_last_shim_id)) {
     // run the last shim that intervened
-    control_in ctrl = _boxes.get(_last_shim_id).monitor(proposed, st);
-
-    if (shim_on()) {
-      params.roll = degrees(ctrl.theta)*100.0f;
-      params.throttle = get_throttle_from_acc(ctrl.a);
-      params.angle_boost = false;
-    }
-
+    actual = _boxes.get(_last_shim_id).monitor(proposed, st);
+    shim_engaged = true;
   }
 
+  // If the shim is on, and it engaged then we need to set
+  // the values.
+  if (shim_on() && shim_engaged) {
+      params.roll = degrees(actual.theta)*100.0f;
+      params.throttle = get_throttle_from_acc(actual.a);
+      params.angle_boost = false;
+  }
+
+  // Statistics reporting
   _stats.theta = radians(wrap_180_cd_float(params.roll)/100.0f);
   _stats.a =
     get_acc_from_throttle(params.angle_boost ?

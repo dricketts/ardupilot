@@ -39,6 +39,7 @@ class BoxesShim : public AC_AttitudeShim {
   AC_AttitudeShim(ahrs, aparm, motors, pi_angle_roll, pi_angle_pitch,
 		  pi_angle_yaw, pid_rate_roll, pid_rate_pitch, pid_rate_yaw),
     _mid_throttle(mid_throttle),
+    _last_shim_id(0),
     _inav(inav)
     {
     };
