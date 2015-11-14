@@ -26,7 +26,7 @@ static float cin_diff(control_in cin1, control_in cin2) {
 }
 
 float BoxesShim::get_x() {
-  return _inav.get_position().x;
+  return -_inav.get_position().x;
 }
 
 float BoxesShim::get_y() {
@@ -38,7 +38,7 @@ float BoxesShim::get_z() {
 }
 
 float BoxesShim::get_vx() {
-  return _inav.get_velocity().x;
+  return -_inav.get_velocity().x;
 }
 
 float BoxesShim::get_vy() {

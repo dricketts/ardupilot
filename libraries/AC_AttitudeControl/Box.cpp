@@ -3,6 +3,8 @@
 #include "AC_AttitudeShim.h"
 #include "AP_Math.h"
 
+extern const AP_HAL::HAL& hal;
+
 /*
  * Distance traveled with initial velocity V,
  * acceleration a, for time t
@@ -252,7 +254,9 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float AZ, float Pitch, 
     res.ay = AY;
     res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    // hal.console->printf("Violated Z\n");
+    // hal.console->printf("(AX,AY,AZ): (%f,%f,%f)\n", res.ax, res.ay, res.az + gravity);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else if (safe_y && safe_z && amin_Y() <= AY && AY <= -amin_Y()
 	     && amin_Z() <= AZ && AZ <= -amin_Z()) {
@@ -260,7 +264,9 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float AZ, float Pitch, 
     res.ay = AY;
     res.az = AZ;
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    // hal.console->printf("Violated X\n");
+    // hal.console->printf("(AX,AY,AZ): (%f,%f,%f)\n", res.ax, res.ay, res.az + gravity);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else if (safe_x && safe_z && amin_X() <= AX && AX <= -amin_X()
 	     && amin_Z() <= AZ && AZ <= -amin_Z()) {
@@ -268,35 +274,37 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float AZ, float Pitch, 
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
     res.az = AZ;
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    // hal.console->printf("Violated Y\n");
+    // hal.console->printf("(AX,AY,AZ): (%f,%f,%f)\n", res.ax, res.ay, res.az + gravity);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else if (safe_x && amin_X() <= AX && AX <= -amin_X()) {
     res.ax = AX;
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
     res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else if (safe_y && amin_Y() <= AY && AY <= -amin_Y()) {
     res.ax = default_rect_action_one_dim(x, vx, amin_X());
     res.ay = AY;
     res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else if (safe_z && amin_Z() <= AZ && AZ <= -amin_Z()) {
     res.ax = default_rect_action_one_dim(x, vx, amin_X());
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
     res.az = AZ;
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   } else {
     res.ax = default_rect_action_one_dim(x, vx, amin_X());
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
     res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
     res.cin.updated = true;
   }
 
@@ -350,7 +358,7 @@ control_in BoxShim::monitor(control_in proposed, state st) {
     res.az = constrain_float(res.az, amin_Z(), -amin_Z());
     if (res.ax != AX || res.ay != AY || res.az != AZ) {
       // Todo new transformation required, involving Z
-      res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+      res.cin = rect_to_spherical(res.ax, res.ay, res.az + gravity);
       res.cin.updated = true;
     } else {
       res.cin = proposed;
