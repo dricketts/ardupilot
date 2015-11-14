@@ -13,7 +13,11 @@ void BoxCollection::set(uint8_t id, BoxShim box) {
   _boxes[id-1].set_x_lb(box.x_lb());
   _boxes[id-1].set_vx_ub(box.vx_ub());
   _boxes[id-1].set_vx_lb(box.vx_lb());
-  _boxes[id-1].set_roll_lb(box.roll_lb());
+  _boxes[id-1].set_z_ub(box.z_ub());
+  _boxes[id-1].set_z_lb(box.z_lb());
+  _boxes[id-1].set_vz_ub(box.vz_ub());
+  _boxes[id-1].set_vz_lb(box.vz_lb());
+  _boxes[id-1].set_angle_lb(box.angle_lb());
   _boxes[id-1].set_abraking(box.abraking());
   _boxes[id-1].set_lookahead(box.lookahead());
   _boxes[id-1].set_d_ctrl(box.d_ctrl());

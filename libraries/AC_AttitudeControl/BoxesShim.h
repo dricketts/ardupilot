@@ -17,14 +17,18 @@ struct shim_stats {
   bool can_run4;
   float x;
   float y;
+  float z;
   float vx;
   float vy;
+  float vz;
   uint16_t throttle;
   uint8_t angle_boost;
   float A_proposed;
-  float Theta_proposed;
+  float Roll_proposed;
+  float Pitch_proposed;
   float a;
-  float theta;
+  float roll;
+  float pitch;
 };
 
 class BoxesShim : public AC_AttitudeShim {
@@ -46,12 +50,16 @@ class BoxesShim : public AC_AttitudeShim {
 
   float get_x();
   float get_y();
+  float get_z();
   float get_vx();
   float get_vy();
+  float get_vz();
 
-  void add_box(const uint8_t id, const float h_ub, const float h_lb, const float hprime_ub, const float hprime_lb,
-	       const float x_ub, const float x_lb, const float xprime_ub, const float xprime_lb,
-	       const float roll_lb, const float abraking, const bool smooth, const float lookahead,
+  void add_box(const uint8_t id,
+	       const float ubx, const float lbx, const float ubvx, const float lbvx,
+	       const float uby, const float lby, const float ubvy, const float lbvy,
+	       const float ubz, const float lbz, const float ubvz, const float lbvz,
+	       const float angle_lb, const float abraking, const bool smooth, const float lookahead,
 	       const float d_ctrl);
   void clear_boxes();
 

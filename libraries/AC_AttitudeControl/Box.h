@@ -12,24 +12,34 @@
 // as python simulation.
 static const float gravity = 980.665f;
 
-struct control_in {
+struct polar {
   float a;
   float theta;
+};
+
+struct control_in {
+  float a;
+  float pitch;
+  float roll;
   bool updated;
 };
 
 struct state {
   float x;
   float y;
+  float z;
   float vx;
   float vy;
+  float vz;
 };
 
 struct bounds {
   float ubx;
   float uby;
+  float ubz;
   float ubvx;
   float ubvy;
+  float ubvz;
 };
 
 struct safety_check {
@@ -42,43 +52,13 @@ struct safety_check {
 struct monitor_check {
   safety_check safe_x;
   safety_check safe_y;
-  bool Theta_bound_check;
+  safety_check safe_z;
+  bool Pitch_bound_check;
+  bool Roll_bound_check;
   float ax;
   float ay;
+  float az;
   control_in cin;
-};
-
-// statistics about the shim
-struct box_shim_stats {
-  float x;
-  float y;
-  float vx;
-  float vy;
-  uint16_t throttle;
-  bool angle_boost;
-  float A;
-  float Theta;
-  float a;
-  float theta;
-  float AX;
-  float AY;
-  float AX_check;
-  float AY_check;
-  float ax;
-  float ay;
-  float amin_x;
-  float amin_y;
-  bool safe_x;
-  bool safe_y;
-  bool safe_x_vel_ub;
-  bool safe_x_vel_lb;
-  bool safe_x_pos_ub;
-  bool safe_x_pos_lb;
-  bool safe_y_vel_ub;
-  bool safe_y_vel_lb;
-  bool safe_y_pos_ub;
-  bool safe_y_pos_lb;
-  bool Theta_bound_check;
 };
 
 class BoxShim {
@@ -104,7 +84,11 @@ class BoxShim {
   void set_x_lb(float b) {_x_lb = b;}
   void set_vx_ub(float b) {_vx_ub = b;}
   void set_vx_lb(float b) {_vx_lb = b;}
-  void set_roll_lb(float r) {_roll_lb = r;}
+  void set_z_ub(float b) {_z_ub = b;}
+  void set_z_lb(float b) {_z_lb = b;}
+  void set_vz_ub(float b) {_vz_ub = b;}
+  void set_vz_lb(float b) {_vz_lb = b;}
+  void set_angle_lb(float r) {_angle_lb = r;}
   void set_abraking(float a) {_abraking = a;}
   void set_lookahead(float x) {_lookahead = x;}
   void set_d_ctrl(float d_ctrl) {_d_ctrl = d_ctrl;}
@@ -120,44 +104,43 @@ class BoxShim {
   float x_lb() {return _x_lb;}
   float vx_ub() {return _vx_ub;}
   float vx_lb() {return _vx_lb;}
-  float roll_lb() {return _roll_lb;}
+  float z_ub() {return _z_ub;}
+  float z_lb() {return _z_lb;}
+  float vz_ub() {return _vz_ub;}
+  float vz_lb() {return _vz_lb;}
+  float angle_lb() {return _angle_lb;}
   float abraking() {return _abraking;}
   float lookahead() {return _lookahead;}
-
-  //
-  // Stats Reporing (Accessor)
-  //
-  box_shim_stats get_shim_stats() {return _stats;}
 
   /*
    * Returns polar coordinates such that A >= 0
    * -PI <= theta <= PI
    */
-  static control_in rect_to_polar (float x, float y);
+  static polar rect_to_polar (float x, float y);
+
+  /*
+   * Returns spherical coordinates such that A >= 0
+   * -PI <= pitch <= PI and -PI/2 <= roll <= PI/2
+   */
+  static control_in rect_to_spherical (float x, float y, float z);
 
  private:
-
-  void attitude_shim_entry_point(Att_shim_params params, bool first_call);
-
-  float throttle_to_accel_scale();
-
-  float get_acc_from_throttle(float throttle);
-  float get_throttle_from_acc(float A);
 
   /*
    * Functions for computing if this monitor can run.
    */
   bool ind_inv_acc(float y, float v, float ub, float amin);
   bool ind_inv_vel(float v, float ub);
-  bool ind_inv(float vx, float vy, float x, float y, float ubx,
-	       float ubvx, float uby, float ubvy);
+  bool ind_inv(float vx, float vy, float vz, float x, float y, float z, float ubx,
+	       float ubvx, float uby, float ubvy, float ubz, float ubvz);
 
   /*
    * Implements the actual monitor logic.
    */
-  monitor_check monitor_logic(float AX, float AY, float Theta, float vx,
-			      float vy, float x, float y, float ubx,
-			      float ubvx, float uby, float ubvy);
+  monitor_check monitor_logic(float AX, float AY, float AZ, float Pitch, float Roll,
+			      float vx, float vy, float vz, float x, float y, float z,
+			      float ubx, float ubvx, float uby, float ubvy,
+			      float ubz, float ubvz);
 
   /*
    * Computes the maximum allowed acceleration by the velocity shim
@@ -179,16 +162,6 @@ class BoxShim {
    */
   safety_check safe_acc(float a, float v, float y,
 			float ub, float ubv, float amin);
-
-  /*
-   * Returns the default action for the position
-   * monitor in polar coordinates.
-   *
-   * The position monitor default action always passes
-   * the velocity monitor's safety check, so we don't
-   * have to consider it.
-   */
-  control_in default_action(float x, float y, float vx, float vy);
 
   /*
    * Returns the default action for one rectangular dimension.
@@ -217,6 +190,11 @@ class BoxShim {
    */
   float amin_Y();
 
+  /*
+   * Breaking acceleration in the Z direction
+   */
+  float amin_Z();
+
   state shift_state(state st);
   bounds shift_bounds();
 
@@ -235,12 +213,17 @@ class BoxShim {
   // horizontal velocity bounds
   float _vx_ub;
   float _vx_lb;
-  // roll bounds
-  float _roll_lb;
+  // horizontal bounds
+  float _z_ub;
+  float _z_lb;
+  // horizontal velocity bounds
+  float _vz_ub;
+  float _vz_lb;
+  // roll and pitch bounds
+  float _angle_lb;
   // braking acceleration for vertical dimension
   float _abraking;
   float _lookahead;
-  box_shim_stats _stats;
 };
 
 #endif //Box_H

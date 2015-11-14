@@ -20,17 +20,24 @@ static float sdist(float V, float amin) {
 }
 
 /*
- * Breaking acceleration in the Y direction
- */
-float BoxShim::amin_Y() {
-  return abraking();
-}
-
-/*
  * Breaking acceleration in the X direction
  */
 float BoxShim::amin_X() {
-  return (amin_Y() + gravity) * tan(roll_lb());
+  return (amin_Z() + gravity) * tan(angle_lb());
+}
+
+/*
+ * Breaking acceleration in the Y direction
+ */
+float BoxShim::amin_Y() {
+  return (amin_Z() + gravity) * tan(angle_lb());
+}
+
+/*
+ * Breaking acceleration in the Z direction
+ */
+float BoxShim::amin_Z() {
+  return abraking();
 }
 
 /*
@@ -58,10 +65,26 @@ bool BoxShim::vel_safe_acc(float a, float v, float ubv) {
  * Returns polar coordinates such that A >= 0
  * -PI <= theta <= PI
  */
-control_in BoxShim::rect_to_polar (float x, float y) {
-  control_in res;
+polar BoxShim::rect_to_polar (float x, float y) {
+  polar res;
   res.theta = atan2(y,x);
   res.a = sqrt((x*x) + (y*y));
+
+  return res;
+}
+
+/*
+ * Returns spherical coordinates such that A >= 0
+ * -PI <= pitch <= PI and -PI/2 <= roll <= PI/2
+ */
+control_in BoxShim::rect_to_spherical (float x, float y, float z) {
+  // Todo two rect to polar transformation, see wikipedia
+  control_in res;
+  polar zx = rect_to_polar(z, x);
+  res.pitch = zx.theta;
+  polar ay = rect_to_polar(zx.a, y);
+  res.roll = ay.theta;
+  res.a = ay.a;
 
   return res;
 }
@@ -81,25 +104,6 @@ float BoxShim::default_rect_action_one_dim(float y, float v,
   } else {
     return -amin;
   }
-}
-
-/*
- * Returns the default action for the position
- * monitor in polar coordinates.
- *
- * The position monitor default action always passes
- * the velocity monitor's safety check, so we don't
- * have to consider it.
- */
-control_in BoxShim::default_action(float x, float y, float vx, float vy) {
-  float ax = default_rect_action_one_dim(x, vx,
-					 amin_X());
-  float ay = default_rect_action_one_dim(y, vy,
-					 amin_Y());
-
-  // We are rotated 90 degrees, so we reverse the arguments
-  // We also account for gravity in the y direction
-  return rect_to_polar(ay + gravity, ax);
 }
 
 static float shift(float ub, float lb) {
@@ -180,73 +184,119 @@ bool BoxShim::ind_inv_vel(float v, float ub) {
   return v <= ub;
 }
 
-bool BoxShim::ind_inv(float vx, float vy, float x, float y, float ubx,
-		      float ubvx, float uby, float ubvy) {
+bool BoxShim::ind_inv(float vx, float vy, float vz,
+		      float x, float y, float z,
+		      float ubx, float ubvx,
+		      float uby, float ubvy,
+		      float ubz, float ubvz) {
   return
     ind_inv_acc(x, vx, ubx, amin_X()) &&
     ind_inv_acc(-x, -vx, ubx, amin_X()) &&
     ind_inv_acc(y, vy, uby, amin_Y()) &&
     ind_inv_acc(-y, -vy, uby, amin_Y()) &&
+    ind_inv_acc(z, vz, ubz, amin_Z()) &&
+    ind_inv_acc(-z, -vz, ubz, amin_Z()) &&
     ind_inv_vel(vx, ubvx) &&
     ind_inv_vel(-vx, ubvx) &&
     ind_inv_vel(vy, ubvy) &&
-    ind_inv_vel(-vy, ubvy);
+    ind_inv_vel(-vy, ubvy) &&
+    ind_inv_vel(vz, ubvz) &&
+    ind_inv_vel(-vz, ubvz);
 }
 
 bool BoxShim::can_run(state st) {
   bounds shifted_bounds = shift_bounds();
   state shifted_st = shift_state(st);
-  return ind_inv(shifted_st.vx, shifted_st.vy, shifted_st.x, shifted_st.y,
-		 shifted_bounds.ubx, shifted_bounds.ubvx, shifted_bounds.uby,
-		 shifted_bounds.ubvy);
+  return ind_inv(shifted_st.vx, shifted_st.vy, shifted_st.vz,
+		 shifted_st.x, shifted_st.y, shifted_st.z,
+		 shifted_bounds.ubx, shifted_bounds.ubvx,
+		 shifted_bounds.uby, shifted_bounds.ubvy,
+		 shifted_bounds.ubz, shifted_bounds.ubvz);
 }
 
 /*
  * Implements the actual monitor logic.
+ * TODO - add z to this function
  */
-monitor_check BoxShim::monitor_logic(float AX, float AY, float Theta, float vx,
-				     float vy, float x, float y, float ubx,
-				     float ubvx, float uby, float ubvy) {
+monitor_check BoxShim::monitor_logic(float AX, float AY, float AZ, float Pitch, float Roll,
+				     float vx, float vy, float vz, float x, float y, float z,
+				     float ubx, float ubvx, float uby, float ubvy,
+				     float ubz, float ubvz) {
   safety_check safe_check_x = safe_acc(AX, vx, x, ubx, ubvx, amin_X());
   bool safe_x = all_safe(safe_check_x);
   safety_check safe_check_y = safe_acc(AY, vy, y, uby, ubvy, amin_Y());
   bool safe_y = all_safe(safe_check_y);
-  bool Theta_bound_check = roll_lb() <= Theta && Theta <= -roll_lb();
+  safety_check safe_check_z = safe_acc(AZ, vz, z, ubz, ubvz, amin_Z());
+  bool safe_z = all_safe(safe_check_z);
+  bool Roll_bound_check = angle_lb() <= Roll && Roll <= -angle_lb();
+  bool Pitch_bound_check = angle_lb() <= Pitch && Pitch <= -angle_lb();
 
   monitor_check res;
   res.safe_x = safe_check_x;
   res.safe_y = safe_check_y;
-  res.Theta_bound_check = Theta_bound_check;
+  res.safe_z = safe_check_z;
+  res.Roll_bound_check = Roll_bound_check;
+  res.Pitch_bound_check = Pitch_bound_check;
 
   // Issue the proposed signal if it passes
   // all safety checks, otherwise issue the default
-  if (safe_x && safe_y && Theta_bound_check) {
+  if (safe_x && safe_y && safe_z && Roll_bound_check && Pitch_bound_check) {
     res.ax = AX;
     res.ay = AY;
+    res.az = AZ;
 
     res.cin.updated = false;
+  } else if (safe_x && safe_y && amin_X() <= AX && AX <= -amin_X()
+	     && amin_Y() <= AY && AY <= -amin_Y()) {
+    res.ax = AX;
+    res.ay = AY;
+    res.az = default_rect_action_one_dim(z, vz, amin_Z());
+
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin.updated = true;
+  } else if (safe_y && safe_z && amin_Y() <= AY && AY <= -amin_Y()
+	     && amin_Z() <= AZ && AZ <= -amin_Z()) {
+    res.ax = default_rect_action_one_dim(x, vx, amin_X());
+    res.ay = AY;
+    res.az = AZ;
+
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin.updated = true;
+  } else if (safe_x && safe_z && amin_X() <= AX && AX <= -amin_X()
+	     && amin_Z() <= AZ && AZ <= -amin_Z()) {
+    res.ax = AX;
+    res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+    res.az = AZ;
+
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin.updated = true;
   } else if (safe_x && amin_X() <= AX && AX <= -amin_X()) {
     res.ax = AX;
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+    res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_polar(res.ay + gravity, AX);
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
     res.cin.updated = true;
   } else if (safe_y && amin_Y() <= AY && AY <= -amin_Y()) {
     res.ax = default_rect_action_one_dim(x, vx, amin_X());
     res.ay = AY;
+    res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    res.cin = rect_to_polar(AY + gravity, res.ax);
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
     res.cin.updated = true;
-  } else {
-
+  } else if (safe_z && amin_Z() <= AZ && AZ <= -amin_Z()) {
     res.ax = default_rect_action_one_dim(x, vx, amin_X());
     res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+    res.az = AZ;
 
-    // We are rotated 90 degrees, so we reverse the arguments
-    // We also account for gravity in the y direction
-    res.cin = rect_to_polar(res.ay + gravity, res.ax);
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
+    res.cin.updated = true;
+  } else {
+    res.ax = default_rect_action_one_dim(x, vx, amin_X());
+    res.ay = default_rect_action_one_dim(y, vy, amin_Y());
+    res.az = default_rect_action_one_dim(z, vz, amin_Z());
 
-    //    control_in res = default_action(x, y, vx, vy);
+    res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
     res.cin.updated = true;
   }
 
@@ -265,15 +315,21 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float shifted_ubvx = shifted_bounds.ubvx;
   float shifted_uby = shifted_bounds.uby;
   float shifted_ubvy = shifted_bounds.ubvy;
+  float shifted_ubz = shifted_bounds.ubz;
+  float shifted_ubvz = shifted_bounds.ubvz;
 
   float x = shifted_st.x;
   float y = shifted_st.y;
+  float z = shifted_st.z;
   float vx = shifted_st.vx;
   float vy = shifted_st.vy;
+  float vz = shifted_st.vz;
   float A = proposed.a;
-  float Theta = proposed.theta;
-  float AX = A*sin(Theta);
-  float AY = A*cos(Theta)-gravity;
+  float Roll = proposed.roll;
+  float Pitch = proposed.pitch;
+  float AX = A*cos(Pitch)*sin(Roll);
+  float AY = A*sin(Pitch);
+  float AZ = A*cos(Pitch)*cos(Roll)-gravity;
 
   monitor_check res;
   if (smooth()) {
@@ -287,47 +343,28 @@ control_in BoxShim::monitor(control_in proposed, state st) {
     res.ay = constrain_float(res.ay, -max_acc_velocity(-vy, shifted_ubvy),
 			     max_acc_velocity(vy, shifted_ubvy));
     res.ay = constrain_float(res.ay, amin_Y(), -amin_Y());
-    if (res.ax != AX || res.ay != AY) {
-      res.cin = rect_to_polar(res.ay + gravity, res.ax);
+    res.az = constrain_float(AZ, -max_acc_position(-z, -vz, shifted_ubz, amin_Z()),
+			     max_acc_position(z, vz, shifted_ubz, amin_Z()));
+    res.az = constrain_float(res.az, -max_acc_velocity(-vz, shifted_ubvz),
+			     max_acc_velocity(vz, shifted_ubvz));
+    res.az = constrain_float(res.az, amin_Z(), -amin_Z());
+    if (res.ax != AX || res.ay != AY || res.az != AZ) {
+      // Todo new transformation required, involving Z
+      res.cin = rect_to_spherical(res.ax, res.ay + gravity, res.az);
       res.cin.updated = true;
     } else {
       res.cin = proposed;
       res.cin.updated = false;
     }
   } else {
-    res = monitor_logic(AX, AY, Theta, vx, vy, x, y, shifted_ubx,
-			shifted_ubvx, shifted_uby, shifted_ubvy);
+    res = monitor_logic(AX, AY, AZ, Pitch, Roll, vx, vy, vz, x, y, z,
+			shifted_ubx, shifted_ubvx, shifted_uby, shifted_ubvy,
+			shifted_ubz, shifted_ubvz);
+
     if (!res.cin.updated) {
       res.cin = proposed;
     }
   }
-
-  // Set all the statistics
-  _stats.x = st.x;
-  _stats.y = st.y;
-  _stats.vx = st.vx;
-  _stats.vy = st.vy;
-  _stats.A = A;
-  _stats.Theta = Theta;
-  _stats.a = res.cin.a;
-  _stats.theta = res.cin.theta;
-  _stats.AX = AX;
-  _stats.AY = AY;
-  _stats.ax = res.ax;
-  _stats.ay = res.ay;
-  _stats.amin_x = amin_X();
-  _stats.amin_y = amin_Y();
-  _stats.safe_x = all_safe(res.safe_x);
-  _stats.safe_y = all_safe(res.safe_y);
-  _stats.safe_x_vel_ub = res.safe_x.vel_ub;
-  _stats.safe_x_vel_lb = res.safe_x.vel_lb;
-  _stats.safe_x_pos_ub = res.safe_x.pos_ub;
-  _stats.safe_x_pos_lb = res.safe_x.pos_lb;
-  _stats.safe_y_vel_ub = res.safe_y.vel_ub;
-  _stats.safe_y_vel_lb = res.safe_y.vel_lb;
-  _stats.safe_y_pos_ub = res.safe_y.pos_ub;
-  _stats.safe_y_pos_lb = res.safe_y.pos_lb;
-  _stats.Theta_bound_check = res.Theta_bound_check;
 
   return res.cin;
 }
@@ -336,8 +373,10 @@ state BoxShim::shift_state(state st) {
   state res;
   res.x = st.x+shift(x_ub(),x_lb());
   res.y = st.y+shift(y_ub(),y_lb());
+  res.z = st.z+shift(z_ub(),z_lb());
   res.vx = st.vx+shift(vx_ub(),vx_lb());
   res.vy = st.vy+shift(vy_ub(),vy_lb());
+  res.vz = st.vz+shift(vz_ub(),vz_lb());
   return res;
 }
 
@@ -347,5 +386,7 @@ bounds BoxShim::shift_bounds() {
   res.ubvx = bound_shift(vx_ub(),vx_lb());
   res.uby = bound_shift(y_ub(),y_lb());
   res.ubvy = bound_shift(vy_ub(),vy_lb());
+  res.ubz = bound_shift(z_ub(),z_lb());
+  res.ubvz = bound_shift(vz_ub(),vz_lb());
   return res;
 }

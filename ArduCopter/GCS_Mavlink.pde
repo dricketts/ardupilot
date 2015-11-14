@@ -132,7 +132,7 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                      box1.d_ctrl(),
                                      box1.smooth(),
                                      box1.lookahead(),
-                                     box1.roll_lb(),
+                                     box1.angle_lb(),
                                      box1.abraking(),
                                      attitude_control.mid_throttle(),
 
@@ -142,6 +142,9 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                      box1.x_ub(),
                                      box1.x_lb(),
                                      box1.vx_ub(),
+                                     box1.z_ub(),
+                                     box1.z_lb(),
+                                     box1.vz_ub(),
 
                                      box2.y_ub(),
                                      box2.y_lb(),
@@ -149,6 +152,9 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                      box2.x_ub(),
                                      box2.x_lb(),
                                      box2.vx_ub(),
+                                     box2.z_ub(),
+                                     box2.z_lb(),
+                                     box2.vz_ub(),
 
                                      box3.y_ub(),
                                      box3.y_lb(),
@@ -156,13 +162,19 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                      box3.x_ub(),
                                      box3.x_lb(),
                                      box3.vx_ub(),
+                                     box3.z_ub(),
+                                     box3.z_lb(),
+                                     box3.vz_ub(),
 
                                      box4.y_ub(),
                                      box4.y_lb(),
                                      box4.vy_ub(),
                                      box4.x_ub(),
                                      box4.x_lb(),
-                                     box4.vx_ub());
+                                     box4.vx_ub(),
+                                     box4.z_ub(),
+                                     box4.z_lb(),
+                                     box4.vz_ub());
     }
 
     shim_stats stats = attitude_control.get_shim_stats();
@@ -174,14 +186,18 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                 stats.can_run4,
                                 stats.x,
                                 stats.y,
+                                stats.z,
                                 stats.vx,
                                 stats.vy,
+                                stats.vz,
                                 stats.throttle,
                                 stats.angle_boost,
                                 stats.A_proposed,
-                                stats.Theta_proposed,
+                                stats.Roll_proposed,
+                                stats.Pitch_proposed,
                                 stats.a,
-                                stats.theta);
+                                stats.roll,
+                                stats.pitch);
 #endif
 }
 
@@ -959,26 +975,35 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         float d_ctrl = packet.d_ctrl;
         bool smooth = packet.smooth;
         uint8_t lookahead = packet.lookahead;
-        float roll_lb = packet.roll_lb;
+        float angle_lb = packet.angle_lb;
         int16_t abraking = packet.abraking;
 
         attitude_control.clear_boxes();
 
-        attitude_control.add_box(1, packet.y_ub1, packet.y_lb1, packet.vy_ub1, -packet.vy_ub1,
+        attitude_control.add_box(1,
                                  packet.x_ub1, packet.x_lb1, packet.vx_ub1, -packet.vx_ub1,
-                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
+                                 packet.y_ub1, packet.y_lb1, packet.vy_ub1, -packet.vy_ub1,
+                                 packet.z_ub1, packet.z_lb1, packet.vz_ub1, -packet.vz_ub1,
+                                 angle_lb, abraking, smooth, lookahead, d_ctrl);
 
-        attitude_control.add_box(2, packet.y_ub2, packet.y_lb2, packet.vy_ub2, -packet.vy_ub2,
+        attitude_control.add_box(2,
                                  packet.x_ub2, packet.x_lb2, packet.vx_ub2, -packet.vx_ub2,
-                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
+                                 packet.y_ub2, packet.y_lb2, packet.vy_ub2, -packet.vy_ub2,
+                                 packet.z_ub2, packet.z_lb2, packet.vz_ub2, -packet.vz_ub2,
+                                 angle_lb, abraking, smooth, lookahead, d_ctrl);
 
-        attitude_control.add_box(3, packet.y_ub3, packet.y_lb3, packet.vy_ub3, -packet.vy_ub3,
+        attitude_control.add_box(3,
                                  packet.x_ub3, packet.x_lb3, packet.vx_ub3, -packet.vx_ub3,
-                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
+                                 packet.y_ub3, packet.y_lb3, packet.vy_ub3, -packet.vy_ub3,
+                                 packet.z_ub3, packet.z_lb3, packet.vz_ub3, -packet.vz_ub3,
+                                 angle_lb, abraking, smooth, lookahead, d_ctrl);
 
-        attitude_control.add_box(4, packet.y_ub4, packet.y_lb4, packet.vy_ub4, -packet.vy_ub4,
+        attitude_control.add_box(4,
                                  packet.x_ub4, packet.x_lb4, packet.vx_ub4, -packet.vx_ub4,
-                                 roll_lb, abraking, smooth, lookahead, d_ctrl);
+                                 packet.y_ub4, packet.y_lb4, packet.vy_ub4, -packet.vy_ub4,
+                                 packet.z_ub4, packet.z_lb4, packet.vz_ub4, -packet.vz_ub4,
+                                 angle_lb, abraking, smooth, lookahead, d_ctrl);
+
 #endif
         break;
     }
