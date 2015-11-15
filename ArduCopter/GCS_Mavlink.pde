@@ -198,12 +198,16 @@ static NOINLINE void send_shim_status(mavlink_channel_t chan)
                                 stats.a,
                                 stats.roll,
                                 stats.pitch,
+                                stats.last_shim,
                                 stats.AX_proposed,
                                 stats.AY_proposed,
                                 stats.AZ_proposed,
                                 stats.ax,
                                 stats.ay,
-                                stats.az);
+                                stats.az,
+                                stats.safe_x,
+                                stats.safe_y,
+                                stats.safe_z);
 #endif
 }
 

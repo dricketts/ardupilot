@@ -177,6 +177,10 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   _stats.ax = actual.ax;
   _stats.ay = actual.ay;
   _stats.az = actual.az;
+  _stats.last_shim = _last_shim_id;
+  _stats.safe_x = BoxShim::all_safe(actual.safe_x);
+  _stats.safe_y = BoxShim::all_safe(actual.safe_y);
+  _stats.safe_z = BoxShim::all_safe(actual.safe_z);
 
   _stats.roll = radians(wrap_180_cd_float(params.roll)/100.0f);
   _stats.pitch = radians(wrap_180_cd_float(params.pitch)/100.0f);

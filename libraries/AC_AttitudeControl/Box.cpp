@@ -116,7 +116,7 @@ static float bound_shift(float ub, float lb) {
   return (ub - lb)/2.0f;
 }
 
-static bool all_safe(safety_check c) {
+bool BoxShim::all_safe(safety_check c) {
   return c.vel_lb && c.vel_ub && c.pos_ub && c.pos_lb;
 }
 

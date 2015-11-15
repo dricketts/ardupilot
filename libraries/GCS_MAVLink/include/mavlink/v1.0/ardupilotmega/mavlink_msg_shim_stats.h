@@ -28,19 +28,23 @@ typedef struct __mavlink_shim_stats_t
  uint8_t can_run3; ///< 1 if shim 3 can run, 0 otherwise
  uint8_t can_run4; ///< 1 if shim 4 can run, 0 otherwise
  uint8_t angle_boost; ///< 1 if angle boost was requested, 0 otherwise
+ uint8_t last_shim; ///< The last shim to run
+ uint8_t safe_x; ///< 1 if safe in x dimension, 0 otherwise
+ uint8_t safe_y; ///< 1 if safe in y dimension, 0 otherwise
+ uint8_t safe_z; ///< 1 if safe in z dimension, 0 otherwise
 } mavlink_shim_stats_t;
 
-#define MAVLINK_MSG_ID_SHIM_STATS_LEN 79
-#define MAVLINK_MSG_ID_232_LEN 79
+#define MAVLINK_MSG_ID_SHIM_STATS_LEN 83
+#define MAVLINK_MSG_ID_232_LEN 83
 
-#define MAVLINK_MSG_ID_SHIM_STATS_CRC 205
-#define MAVLINK_MSG_ID_232_CRC 205
+#define MAVLINK_MSG_ID_SHIM_STATS_CRC 154
+#define MAVLINK_MSG_ID_232_CRC 154
 
 
 
 #define MAVLINK_MESSAGE_INFO_SHIM_STATS { \
 	"SHIM_STATS", \
-	24, \
+	28, \
 	{  { "x", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_shim_stats_t, x) }, \
          { "y", NULL, MAVLINK_TYPE_FLOAT, 0, 4, offsetof(mavlink_shim_stats_t, y) }, \
          { "z", NULL, MAVLINK_TYPE_FLOAT, 0, 8, offsetof(mavlink_shim_stats_t, z) }, \
@@ -65,6 +69,10 @@ typedef struct __mavlink_shim_stats_t
          { "can_run3", NULL, MAVLINK_TYPE_UINT8_T, 0, 76, offsetof(mavlink_shim_stats_t, can_run3) }, \
          { "can_run4", NULL, MAVLINK_TYPE_UINT8_T, 0, 77, offsetof(mavlink_shim_stats_t, can_run4) }, \
          { "angle_boost", NULL, MAVLINK_TYPE_UINT8_T, 0, 78, offsetof(mavlink_shim_stats_t, angle_boost) }, \
+         { "last_shim", NULL, MAVLINK_TYPE_UINT8_T, 0, 79, offsetof(mavlink_shim_stats_t, last_shim) }, \
+         { "safe_x", NULL, MAVLINK_TYPE_UINT8_T, 0, 80, offsetof(mavlink_shim_stats_t, safe_x) }, \
+         { "safe_y", NULL, MAVLINK_TYPE_UINT8_T, 0, 81, offsetof(mavlink_shim_stats_t, safe_y) }, \
+         { "safe_z", NULL, MAVLINK_TYPE_UINT8_T, 0, 82, offsetof(mavlink_shim_stats_t, safe_z) }, \
          } \
 }
 
@@ -93,16 +101,20 @@ typedef struct __mavlink_shim_stats_t
  * @param a The issued acceleration, normal to the quadcopter.
  * @param roll The issued roll angle
  * @param pitch The issued pitch angle
+ * @param last_shim The last shim to run
  * @param AX_proposed The proposed AX
  * @param AY_proposed The proposed AY
  * @param AZ_proposed The proposed AZ
  * @param ax The actual ax
  * @param ay The actual ay
  * @param az The actual az
+ * @param safe_x 1 if safe in x dimension, 0 otherwise
+ * @param safe_y 1 if safe in y dimension, 0 otherwise
+ * @param safe_z 1 if safe in z dimension, 0 otherwise
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_shim_stats_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-						       uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az)
+						       uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, uint8_t last_shim, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az, uint8_t safe_x, uint8_t safe_y, uint8_t safe_z)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_STATS_LEN];
@@ -130,6 +142,10 @@ static inline uint16_t mavlink_msg_shim_stats_pack(uint8_t system_id, uint8_t co
 	_mav_put_uint8_t(buf, 76, can_run3);
 	_mav_put_uint8_t(buf, 77, can_run4);
 	_mav_put_uint8_t(buf, 78, angle_boost);
+	_mav_put_uint8_t(buf, 79, last_shim);
+	_mav_put_uint8_t(buf, 80, safe_x);
+	_mav_put_uint8_t(buf, 81, safe_y);
+	_mav_put_uint8_t(buf, 82, safe_z);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_SHIM_STATS_LEN);
 #else
@@ -158,6 +174,10 @@ static inline uint16_t mavlink_msg_shim_stats_pack(uint8_t system_id, uint8_t co
 	packet.can_run3 = can_run3;
 	packet.can_run4 = can_run4;
 	packet.angle_boost = angle_boost;
+	packet.last_shim = last_shim;
+	packet.safe_x = safe_x;
+	packet.safe_y = safe_y;
+	packet.safe_z = safe_z;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_SHIM_STATS_LEN);
 #endif
@@ -194,17 +214,21 @@ static inline uint16_t mavlink_msg_shim_stats_pack(uint8_t system_id, uint8_t co
  * @param a The issued acceleration, normal to the quadcopter.
  * @param roll The issued roll angle
  * @param pitch The issued pitch angle
+ * @param last_shim The last shim to run
  * @param AX_proposed The proposed AX
  * @param AY_proposed The proposed AY
  * @param AZ_proposed The proposed AZ
  * @param ax The actual ax
  * @param ay The actual ay
  * @param az The actual az
+ * @param safe_x 1 if safe in x dimension, 0 otherwise
+ * @param safe_y 1 if safe in y dimension, 0 otherwise
+ * @param safe_z 1 if safe in z dimension, 0 otherwise
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_shim_stats_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
 							   mavlink_message_t* msg,
-						           uint8_t can_run1,uint8_t can_run2,uint8_t can_run3,uint8_t can_run4,float x,float y,float z,float vx,float vy,float vz,uint16_t throttle,uint8_t angle_boost,float A_proposed,float Roll_proposed,float Pitch_proposed,float a,float roll,float pitch,float AX_proposed,float AY_proposed,float AZ_proposed,float ax,float ay,float az)
+						           uint8_t can_run1,uint8_t can_run2,uint8_t can_run3,uint8_t can_run4,float x,float y,float z,float vx,float vy,float vz,uint16_t throttle,uint8_t angle_boost,float A_proposed,float Roll_proposed,float Pitch_proposed,float a,float roll,float pitch,uint8_t last_shim,float AX_proposed,float AY_proposed,float AZ_proposed,float ax,float ay,float az,uint8_t safe_x,uint8_t safe_y,uint8_t safe_z)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_STATS_LEN];
@@ -232,6 +256,10 @@ static inline uint16_t mavlink_msg_shim_stats_pack_chan(uint8_t system_id, uint8
 	_mav_put_uint8_t(buf, 76, can_run3);
 	_mav_put_uint8_t(buf, 77, can_run4);
 	_mav_put_uint8_t(buf, 78, angle_boost);
+	_mav_put_uint8_t(buf, 79, last_shim);
+	_mav_put_uint8_t(buf, 80, safe_x);
+	_mav_put_uint8_t(buf, 81, safe_y);
+	_mav_put_uint8_t(buf, 82, safe_z);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_SHIM_STATS_LEN);
 #else
@@ -260,6 +288,10 @@ static inline uint16_t mavlink_msg_shim_stats_pack_chan(uint8_t system_id, uint8
 	packet.can_run3 = can_run3;
 	packet.can_run4 = can_run4;
 	packet.angle_boost = angle_boost;
+	packet.last_shim = last_shim;
+	packet.safe_x = safe_x;
+	packet.safe_y = safe_y;
+	packet.safe_z = safe_z;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_SHIM_STATS_LEN);
 #endif
@@ -282,7 +314,7 @@ static inline uint16_t mavlink_msg_shim_stats_pack_chan(uint8_t system_id, uint8
  */
 static inline uint16_t mavlink_msg_shim_stats_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_shim_stats_t* shim_stats)
 {
-	return mavlink_msg_shim_stats_pack(system_id, component_id, msg, shim_stats->can_run1, shim_stats->can_run2, shim_stats->can_run3, shim_stats->can_run4, shim_stats->x, shim_stats->y, shim_stats->z, shim_stats->vx, shim_stats->vy, shim_stats->vz, shim_stats->throttle, shim_stats->angle_boost, shim_stats->A_proposed, shim_stats->Roll_proposed, shim_stats->Pitch_proposed, shim_stats->a, shim_stats->roll, shim_stats->pitch, shim_stats->AX_proposed, shim_stats->AY_proposed, shim_stats->AZ_proposed, shim_stats->ax, shim_stats->ay, shim_stats->az);
+	return mavlink_msg_shim_stats_pack(system_id, component_id, msg, shim_stats->can_run1, shim_stats->can_run2, shim_stats->can_run3, shim_stats->can_run4, shim_stats->x, shim_stats->y, shim_stats->z, shim_stats->vx, shim_stats->vy, shim_stats->vz, shim_stats->throttle, shim_stats->angle_boost, shim_stats->A_proposed, shim_stats->Roll_proposed, shim_stats->Pitch_proposed, shim_stats->a, shim_stats->roll, shim_stats->pitch, shim_stats->last_shim, shim_stats->AX_proposed, shim_stats->AY_proposed, shim_stats->AZ_proposed, shim_stats->ax, shim_stats->ay, shim_stats->az, shim_stats->safe_x, shim_stats->safe_y, shim_stats->safe_z);
 }
 
 /**
@@ -296,7 +328,7 @@ static inline uint16_t mavlink_msg_shim_stats_encode(uint8_t system_id, uint8_t 
  */
 static inline uint16_t mavlink_msg_shim_stats_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_shim_stats_t* shim_stats)
 {
-	return mavlink_msg_shim_stats_pack_chan(system_id, component_id, chan, msg, shim_stats->can_run1, shim_stats->can_run2, shim_stats->can_run3, shim_stats->can_run4, shim_stats->x, shim_stats->y, shim_stats->z, shim_stats->vx, shim_stats->vy, shim_stats->vz, shim_stats->throttle, shim_stats->angle_boost, shim_stats->A_proposed, shim_stats->Roll_proposed, shim_stats->Pitch_proposed, shim_stats->a, shim_stats->roll, shim_stats->pitch, shim_stats->AX_proposed, shim_stats->AY_proposed, shim_stats->AZ_proposed, shim_stats->ax, shim_stats->ay, shim_stats->az);
+	return mavlink_msg_shim_stats_pack_chan(system_id, component_id, chan, msg, shim_stats->can_run1, shim_stats->can_run2, shim_stats->can_run3, shim_stats->can_run4, shim_stats->x, shim_stats->y, shim_stats->z, shim_stats->vx, shim_stats->vy, shim_stats->vz, shim_stats->throttle, shim_stats->angle_boost, shim_stats->A_proposed, shim_stats->Roll_proposed, shim_stats->Pitch_proposed, shim_stats->a, shim_stats->roll, shim_stats->pitch, shim_stats->last_shim, shim_stats->AX_proposed, shim_stats->AY_proposed, shim_stats->AZ_proposed, shim_stats->ax, shim_stats->ay, shim_stats->az, shim_stats->safe_x, shim_stats->safe_y, shim_stats->safe_z);
 }
 
 /**
@@ -321,16 +353,20 @@ static inline uint16_t mavlink_msg_shim_stats_encode_chan(uint8_t system_id, uin
  * @param a The issued acceleration, normal to the quadcopter.
  * @param roll The issued roll angle
  * @param pitch The issued pitch angle
+ * @param last_shim The last shim to run
  * @param AX_proposed The proposed AX
  * @param AY_proposed The proposed AY
  * @param AZ_proposed The proposed AZ
  * @param ax The actual ax
  * @param ay The actual ay
  * @param az The actual az
+ * @param safe_x 1 if safe in x dimension, 0 otherwise
+ * @param safe_y 1 if safe in y dimension, 0 otherwise
+ * @param safe_z 1 if safe in z dimension, 0 otherwise
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_shim_stats_send(mavlink_channel_t chan, uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az)
+static inline void mavlink_msg_shim_stats_send(mavlink_channel_t chan, uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, uint8_t last_shim, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az, uint8_t safe_x, uint8_t safe_y, uint8_t safe_z)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char buf[MAVLINK_MSG_ID_SHIM_STATS_LEN];
@@ -358,6 +394,10 @@ static inline void mavlink_msg_shim_stats_send(mavlink_channel_t chan, uint8_t c
 	_mav_put_uint8_t(buf, 76, can_run3);
 	_mav_put_uint8_t(buf, 77, can_run4);
 	_mav_put_uint8_t(buf, 78, angle_boost);
+	_mav_put_uint8_t(buf, 79, last_shim);
+	_mav_put_uint8_t(buf, 80, safe_x);
+	_mav_put_uint8_t(buf, 81, safe_y);
+	_mav_put_uint8_t(buf, 82, safe_z);
 
 #if MAVLINK_CRC_EXTRA
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SHIM_STATS, buf, MAVLINK_MSG_ID_SHIM_STATS_LEN, MAVLINK_MSG_ID_SHIM_STATS_CRC);
@@ -390,6 +430,10 @@ static inline void mavlink_msg_shim_stats_send(mavlink_channel_t chan, uint8_t c
 	packet.can_run3 = can_run3;
 	packet.can_run4 = can_run4;
 	packet.angle_boost = angle_boost;
+	packet.last_shim = last_shim;
+	packet.safe_x = safe_x;
+	packet.safe_y = safe_y;
+	packet.safe_z = safe_z;
 
 #if MAVLINK_CRC_EXTRA
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SHIM_STATS, (const char *)&packet, MAVLINK_MSG_ID_SHIM_STATS_LEN, MAVLINK_MSG_ID_SHIM_STATS_CRC);
@@ -407,7 +451,7 @@ static inline void mavlink_msg_shim_stats_send(mavlink_channel_t chan, uint8_t c
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
-static inline void mavlink_msg_shim_stats_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az)
+static inline void mavlink_msg_shim_stats_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t can_run1, uint8_t can_run2, uint8_t can_run3, uint8_t can_run4, float x, float y, float z, float vx, float vy, float vz, uint16_t throttle, uint8_t angle_boost, float A_proposed, float Roll_proposed, float Pitch_proposed, float a, float roll, float pitch, uint8_t last_shim, float AX_proposed, float AY_proposed, float AZ_proposed, float ax, float ay, float az, uint8_t safe_x, uint8_t safe_y, uint8_t safe_z)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
 	char *buf = (char *)msgbuf;
@@ -435,6 +479,10 @@ static inline void mavlink_msg_shim_stats_send_buf(mavlink_message_t *msgbuf, ma
 	_mav_put_uint8_t(buf, 76, can_run3);
 	_mav_put_uint8_t(buf, 77, can_run4);
 	_mav_put_uint8_t(buf, 78, angle_boost);
+	_mav_put_uint8_t(buf, 79, last_shim);
+	_mav_put_uint8_t(buf, 80, safe_x);
+	_mav_put_uint8_t(buf, 81, safe_y);
+	_mav_put_uint8_t(buf, 82, safe_z);
 
 #if MAVLINK_CRC_EXTRA
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SHIM_STATS, buf, MAVLINK_MSG_ID_SHIM_STATS_LEN, MAVLINK_MSG_ID_SHIM_STATS_CRC);
@@ -467,6 +515,10 @@ static inline void mavlink_msg_shim_stats_send_buf(mavlink_message_t *msgbuf, ma
 	packet->can_run3 = can_run3;
 	packet->can_run4 = can_run4;
 	packet->angle_boost = angle_boost;
+	packet->last_shim = last_shim;
+	packet->safe_x = safe_x;
+	packet->safe_y = safe_y;
+	packet->safe_z = safe_z;
 
 #if MAVLINK_CRC_EXTRA
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SHIM_STATS, (const char *)packet, MAVLINK_MSG_ID_SHIM_STATS_LEN, MAVLINK_MSG_ID_SHIM_STATS_CRC);
@@ -663,6 +715,16 @@ static inline float mavlink_msg_shim_stats_get_pitch(const mavlink_message_t* ms
 }
 
 /**
+ * @brief Get field last_shim from shim_stats message
+ *
+ * @return The last shim to run
+ */
+static inline uint8_t mavlink_msg_shim_stats_get_last_shim(const mavlink_message_t* msg)
+{
+	return _MAV_RETURN_uint8_t(msg,  79);
+}
+
+/**
  * @brief Get field AX_proposed from shim_stats message
  *
  * @return The proposed AX
@@ -723,6 +785,36 @@ static inline float mavlink_msg_shim_stats_get_az(const mavlink_message_t* msg)
 }
 
 /**
+ * @brief Get field safe_x from shim_stats message
+ *
+ * @return 1 if safe in x dimension, 0 otherwise
+ */
+static inline uint8_t mavlink_msg_shim_stats_get_safe_x(const mavlink_message_t* msg)
+{
+	return _MAV_RETURN_uint8_t(msg,  80);
+}
+
+/**
+ * @brief Get field safe_y from shim_stats message
+ *
+ * @return 1 if safe in y dimension, 0 otherwise
+ */
+static inline uint8_t mavlink_msg_shim_stats_get_safe_y(const mavlink_message_t* msg)
+{
+	return _MAV_RETURN_uint8_t(msg,  81);
+}
+
+/**
+ * @brief Get field safe_z from shim_stats message
+ *
+ * @return 1 if safe in z dimension, 0 otherwise
+ */
+static inline uint8_t mavlink_msg_shim_stats_get_safe_z(const mavlink_message_t* msg)
+{
+	return _MAV_RETURN_uint8_t(msg,  82);
+}
+
+/**
  * @brief Decode a shim_stats message into a struct
  *
  * @param msg The message to decode
@@ -755,6 +847,10 @@ static inline void mavlink_msg_shim_stats_decode(const mavlink_message_t* msg, m
 	shim_stats->can_run3 = mavlink_msg_shim_stats_get_can_run3(msg);
 	shim_stats->can_run4 = mavlink_msg_shim_stats_get_can_run4(msg);
 	shim_stats->angle_boost = mavlink_msg_shim_stats_get_angle_boost(msg);
+	shim_stats->last_shim = mavlink_msg_shim_stats_get_last_shim(msg);
+	shim_stats->safe_x = mavlink_msg_shim_stats_get_safe_x(msg);
+	shim_stats->safe_y = mavlink_msg_shim_stats_get_safe_y(msg);
+	shim_stats->safe_z = mavlink_msg_shim_stats_get_safe_z(msg);
 #else
 	memcpy(shim_stats, _MAV_PAYLOAD(msg), MAVLINK_MSG_ID_SHIM_STATS_LEN);
 #endif

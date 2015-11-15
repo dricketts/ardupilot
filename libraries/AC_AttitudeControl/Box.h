@@ -127,6 +127,8 @@ class BoxShim {
    */
   static control_in rect_to_spherical (float x, float y, float z);
 
+  static bool all_safe(safety_check c);
+
  private:
 
   /*
