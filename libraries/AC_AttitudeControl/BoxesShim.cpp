@@ -90,6 +90,13 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   }
 
   control_in proposed;
+  // Vector3f ef_vector;
+  // ef_vector.x = radians(wrap_180_cd_float(roll)/100.0f);
+  // ef_vector.y = radians(wrap_180_cd_float(pitch)/100.0f);
+  // Vector3f bf_vector;
+  // frame_conversion_ef_to_bf(ef_vector, bf_vector);
+  // proposed.roll = bf_vector.x;
+  // proposed.pitch = bf_vector.y;
   proposed.roll = radians(wrap_180_cd_float(roll)/100.0f);
   proposed.pitch = radians(wrap_180_cd_float(pitch)/100.0f);
   proposed.a =
@@ -118,7 +125,7 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   _stats.Pitch_proposed = proposed.pitch;
 
   bool shim_engaged = false;
-  control_in actual;
+  monitor_check actual;
   bool first = true;
 
   for (uint8_t i = 1; i <= _boxes.size(); i++) {
@@ -130,8 +137,8 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
       if (can_run) {
 	shim_engaged = true;
       
-	control_in check = box.monitor(proposed, st);
-	if (first || cin_diff(check, proposed) < cin_diff(actual, proposed)) {
+	monitor_check check = box.monitor(proposed, st);
+	if (first || cin_diff(check.cin, proposed) < cin_diff(actual.cin, proposed)) {
 	  actual = check;
 	  first = false;
 	  _last_shim_id = i;
@@ -151,13 +158,26 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   // If the shim is on, and it engaged then we need to set
   // the values.
   if (shim_on() && shim_engaged) {
-      params.roll = degrees(actual.roll)*100.0f;
-      params.pitch = degrees(actual.pitch)*100.0f;
-      params.throttle = get_throttle_from_acc(actual.a);
-      params.angle_boost = false;
+    // bf_vector.x = actual.roll;
+    // bf_vector.y = actual.pitch;
+    // frame_conversion_bf_to_ef(bf_vector, ef_vector);
+
+    // params.roll = degrees(ef_vector.x)*100.0f;
+    // params.pitch = degrees(ef_vector.y)*100.0f;
+    params.roll = degrees(actual.cin.roll)*100.0f;
+    params.pitch = degrees(actual.cin.pitch)*100.0f;
+    params.throttle = get_throttle_from_acc(actual.cin.a);
+    params.angle_boost = false;
   }
 
   // Statistics reporting
+  _stats.AX_proposed = actual.AX;
+  _stats.AY_proposed = actual.AY;
+  _stats.AZ_proposed = actual.AZ;
+  _stats.ax = actual.ax;
+  _stats.ay = actual.ay;
+  _stats.az = actual.az;
+
   _stats.roll = radians(wrap_180_cd_float(params.roll)/100.0f);
   _stats.pitch = radians(wrap_180_cd_float(params.pitch)/100.0f);
   _stats.a =
@@ -165,6 +185,7 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
 			  get_angle_boost(params.throttle + 0.0f) :
 			  params.throttle + 0.0f);
 
+  // Output to the attitude controller
   AC_AttitudeShim::attitude_shim_entry_point(params, first_call);
 }
 

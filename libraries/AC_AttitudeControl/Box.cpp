@@ -314,7 +314,7 @@ monitor_check BoxShim::monitor_logic(float AX, float AY, float AZ, float Pitch, 
 /*
  * Runs the monitor, returning a safe control input.
  */
-control_in BoxShim::monitor(control_in proposed, state st) {
+monitor_check BoxShim::monitor(control_in proposed, state st) {
 
   bounds shifted_bounds = shift_bounds();
   state shifted_st = shift_state(st);
@@ -340,6 +340,9 @@ control_in BoxShim::monitor(control_in proposed, state st) {
   float AZ = A*cos(Pitch)*cos(Roll)-gravity;
 
   monitor_check res;
+  res.AX = AX;
+  res.AY = AY;
+  res.AZ = AZ;
   if (smooth()) {
     res.ax = constrain_float(AX, -max_acc_position(-x, -vx, shifted_ubx, amin_X()),
 			     max_acc_position(x, vx, shifted_ubx, amin_X()));
@@ -374,7 +377,7 @@ control_in BoxShim::monitor(control_in proposed, state st) {
     }
   }
 
-  return res.cin;
+  return res;
 }
 
 state BoxShim::shift_state(state st) {

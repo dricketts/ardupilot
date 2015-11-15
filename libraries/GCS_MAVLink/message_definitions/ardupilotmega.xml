@@ -541,6 +541,12 @@
       <field type="float" name="a">The issued acceleration, normal to the quadcopter.</field>
       <field type="float" name="roll">The issued roll angle</field>
       <field type="float" name="pitch">The issued pitch angle</field>
+      <field type="float" name="AX_proposed">The proposed AX</field>
+      <field type="float" name="AY_proposed">The proposed AY</field>
+      <field type="float" name="AZ_proposed">The proposed AZ</field>
+      <field type="float" name="ax">The actual ax</field>
+      <field type="float" name="ay">The actual ay</field>
+      <field type="float" name="az">The actual az</field>
     </message>
 
      </messages>

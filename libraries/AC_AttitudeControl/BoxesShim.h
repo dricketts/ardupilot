@@ -29,6 +29,12 @@ struct shim_stats {
   float a;
   float roll;
   float pitch;
+  float AX_proposed;
+  float AY_proposed;
+  float AZ_proposed;
+  float ax;
+  float ay;
+  float az;
 };
 
 class BoxesShim : public AC_AttitudeShim {

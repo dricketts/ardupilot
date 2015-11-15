@@ -58,6 +58,9 @@ struct monitor_check {
   float ax;
   float ay;
   float az;
+  float AX;
+  float AY;
+  float AZ;
   control_in cin;
 };
 
@@ -73,7 +76,7 @@ class BoxShim {
   /*
    * Runs the monitor, returning a safe control input.
    */
-  control_in monitor(control_in proposed, state st);
+  monitor_check monitor(control_in proposed, state st);
 
   // set shim bounding parameters
   void set_y_ub(float b) {_y_ub = b;}
