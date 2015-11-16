@@ -84,7 +84,7 @@ control_in BoxShim::rect_to_spherical (float x, float y, float z) {
   control_in res;
   polar zx = rect_to_polar(z, x);
   res.pitch = zx.theta;
-  polar ay = rect_to_polar(zx.a, y);
+  polar ay = rect_to_polar(zx.a, -y);
   res.roll = ay.theta;
   res.a = ay.a;
 
@@ -335,14 +335,11 @@ monitor_check BoxShim::monitor(control_in proposed, state st) {
   float A = proposed.a;
   float Roll = proposed.roll;
   float Pitch = proposed.pitch;
-  float AX = A*cos(Pitch)*sin(Roll);
-  float AY = A*sin(Pitch);
-  float AZ = A*cos(Pitch)*cos(Roll)-gravity;
+  float AX = A*cos(Roll)*sin(Pitch);
+  float AY = -A*sin(Roll);
+  float AZ = A*cos(Roll)*cos(Pitch)-gravity;
 
   monitor_check res;
-  res.AX = AX;
-  res.AY = AY;
-  res.AZ = AZ;
   if (smooth()) {
     res.ax = constrain_float(AX, -max_acc_position(-x, -vx, shifted_ubx, amin_X()),
 			     max_acc_position(x, vx, shifted_ubx, amin_X()));
@@ -376,6 +373,10 @@ monitor_check BoxShim::monitor(control_in proposed, state st) {
       res.cin = proposed;
     }
   }
+
+  res.AX = AX;
+  res.AY = AY;
+  res.AZ = AZ;
 
   return res;
 }

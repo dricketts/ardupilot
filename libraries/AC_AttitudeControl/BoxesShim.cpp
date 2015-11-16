@@ -30,7 +30,7 @@ float BoxesShim::get_x() {
 }
 
 float BoxesShim::get_y() {
-  return _inav.get_position().y;
+  return -_inav.get_position().y;
 }
 
 float BoxesShim::get_z() {
@@ -42,7 +42,7 @@ float BoxesShim::get_vx() {
 }
 
 float BoxesShim::get_vy() {
-  return _inav.get_velocity().y;
+  return -_inav.get_velocity().y;
 }
 
 float BoxesShim::get_vz() {
@@ -158,8 +158,8 @@ void BoxesShim::attitude_shim_entry_point(Att_shim_params params, bool first_cal
   // If the shim is on, and it engaged then we need to set
   // the values.
   if (shim_on() && shim_engaged) {
-    // bf_vector.x = actual.roll;
-    // bf_vector.y = actual.pitch;
+    // bf_vector.x = actual.cin.roll;
+    // bf_vector.y = actual.cin.pitch;
     // frame_conversion_bf_to_ef(bf_vector, ef_vector);
 
     // params.roll = degrees(ef_vector.x)*100.0f;
