@@ -47,13 +47,14 @@ float BoxShim::amin_Z() {
  */
 bool BoxShim::pos_safe_acc(float a, float v, float y,
 			   float ub, float amin) {
-  float mxa;
-  if (a > 0.0f) {
-    mxa = a;
+  if (0 <= v + a*_d_ctrl) {
+    return y + tdist(v, a, _d_ctrl) + sdist (v + a*_d_ctrl, amin) <= ub;
+  } else if (v + a*_d_ctrl <= 0 && 0 < v && a != 0) {
+    /* the a != 0 check should always succeed if the other conditions are true */
+    return y + tdist(v, a, (-v/a)) <= ub;
   } else {
-    mxa = 0.0f;
+    return true;
   }
-  return y + tdist(v,mxa,_d_ctrl) + sdist(v + mxa*_d_ctrl,amin) <= ub;
 }
 
 /*
